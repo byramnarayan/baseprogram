@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Agricultural Assistant Platform{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-retro-green to-retro-dark text-white rounded-retro shadow-retro mb-2xl">
+    <div class="container mx-auto px-lg py-3xl text-center">
+        <h1 class="text-5xl font-heading mb-xl">🌾 Agricultural Assistant Platform</h1>
+        <p class="text-2xl font-body font-semibold mb-lg">AI-Powered Farming Assistant for Indian Farmers</p>
+        <p class="text-xl font-body mb-2xl max-w-3xl mx-auto">
+            Identify plants, get crop recommendations, map your farm, calculate carbon credits,
+            and compete with other farmers - all powered by Google Gemini AI
+        </p>
+        <div class="flex justify-center gap-lg flex-wrap">
+            <a href="/register"
+                class="btn-retro bg-retro-yellow text-retro-dark px-2xl py-lg rounded-retro font-bold text-xl">
+                Get Started Free
+            </a>
+            <a href="/login" class="btn-retro bg-retro-lime text-white px-2xl py-lg rounded-retro font-bold text-xl">
+                Login
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mx-auto mb-3xl">
+    <h2 class="text-4xl font-heading text-center text-retro-dark mb-2xl">Powerful Features</h2>
+
+    <div class="grid md:grid-cols-3 gap-xl">
+        <!-- Feature 1 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🌿</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Plant Identification</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Upload plant photos and get instant AI-powered identification.
+                Detect invasive species and get removal advice.
+            </p>
+            <span class="text-retro-green font-bold font-body">Earn 50-100 points</span>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🌾</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Crop Recommendations</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Get personalized crop suggestions based on your soil, budget, and location.
+                AI-powered insights from successful farmers.
+            </p>
+            <span class="text-retro-green font-bold font-body">Smart AI Guidance</span>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🗺️</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Farm Mapping</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Map your farm using GPS coordinates. Calculate exact area and
+                estimate carbon credit value.
+            </p>
+            <span class="text-retro-green font-bold font-body">Earn 100 points</span>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🍃</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Carbon Credits</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Calculate your farm's carbon credit potential based on soil type and crops.
+                Convert green farming into extra income.
+            </p>
+            <span class="text-retro-green font-bold font-body">₹ Calculate Value</span>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🔔</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Smart Alerts</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Get important notifications about pest outbreaks, disease clusters,
+                and farming advisories in your area.
+            </p>
+            <span class="text-retro-green font-bold font-body">Stay Informed</span>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="card-retro p-xl hover:shadow-retro-hover transition-all">
+            <div class="text-5xl mb-lg">🏆</div>
+            <h3 class="text-2xl font-heading text-retro-dark mb-md">Gamification</h3>
+            <p class="font-body text-gray-700 mb-lg">
+                Earn points, unlock badges, and compete on leaderboards.
+                Become a top farmer in your district!
+            </p>
+            <span class="text-retro-green font-bold font-body">Compete & Win</span>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="card-retro p-3xl mb-3xl">
+    <h2 class="text-4xl font-heading text-center text-retro-dark mb-2xl">How It Works</h2>
+
+    <div class="max-w-4xl mx-auto space-y-xl">
+        <div class="flex items-start space-x-lg">
+            <div
+                class="bg-retro-green text-white rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0 text-2xl font-heading shadow-retro">
+                1
+            </div>
+            <div>
+                <h3 class="text-2xl font-heading text-retro-dark mb-sm">Register Your Account</h3>
+                <p class="font-body text-gray-700">Sign up with your phone number and basic details. Get started in
+                    under 2
+                    minutes.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start space-x-lg">
+            <div
+                class="bg-retro-green text-white rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0 text-2xl font-heading shadow-retro">
+                2
+            </div>
+            <div>
+                <h3 class="text-2xl font-heading text-retro-dark mb-sm">Map Your Farm</h3>
+                <p class="font-body text-gray-700">Add your farm details and GPS coordinates. Calculate area and carbon
+                    credits automatically.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start space-x-lg">
+            <div
+                class="bg-retro-green text-white rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0 text-2xl font-heading shadow-retro">
+                3
+            </div>
+            <div>
+                <h3 class="text-2xl font-heading text-retro-dark mb-sm">Use AI Features</h3>
+                <p class="font-body text-gray-700">Identify plants, get crop recommendations, and receive farming advice
+                    powered by Google Gemini AI.</p>
+            </div>
+        </div>
+
+        <div class="flex items-start space-x-lg">
+            <div
+                class="bg-retro-green text-white rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0 text-2xl font-heading shadow-retro">
+                4
+            </div>
+            <div>
+                <h3 class="text-2xl font-heading text-retro-dark mb-sm">Earn & Compete</h3>
+                <p class="font-body text-gray-700">Earn points for every action, unlock badges, and climb the
+                    leaderboard!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div
+    class="bg-gradient-to-r from-retro-green to-retro-dark text-white rounded-retro shadow-retro-hover p-3xl text-center">
+    <h2 class="text-4xl font-heading mb-xl">Ready to Start Your Farming Journey?</h2>
+    <p class="text-xl font-body mb-2xl">Join thousands of farmers using AI to improve their farming</p>
+    <a href="/register"
+        class="btn-retro bg-retro-yellow text-retro-dark px-3xl py-lg rounded-retro font-bold text-xl inline-block">
+        Register Now - It's Free! 🚀
+    </a>
+</div>
+{% endblock %}

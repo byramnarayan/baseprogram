@@ -1,0 +1,28 @@
+# FastAPI User Management Application - Dependencies
+# This file lists all Python packages required for the project
+# Install with: pip install -r requirements.txt
+
+# Core Framework
+fastapi==0.109.0              # Modern, fast web framework for building APIs
+uvicorn[standard]==0.27.0     # ASGI server for running FastAPI applications
+python-multipart==0.0.6       # Required for file uploads and form data
+
+# Database
+sqlalchemy==2.0.25            # SQL toolkit and ORM
+aiosqlite==0.19.0             # Async SQLite driver for SQLAlchemy
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0  # JWT token creation and validation
+pwdlib[argon2]==0.2.0         # Modern password hashing (Argon2)
+passlib[bcrypt]==1.7.4        # Alternative password hashing library
+
+# Validation & Settings
+pydantic==2.5.3               # Data validation using Python type hints
+pydantic-settings==2.1.0      # Settings management from environment variables
+email-validator==2.1.0        # Email validation for Pydantic
+
+# Templates
+jinja2==3.1.3                 # Template engine for HTML rendering
+
+# Development Tools (Optional but recommended)
+python-dotenv==1.0.0          # Load environment variables from .env file

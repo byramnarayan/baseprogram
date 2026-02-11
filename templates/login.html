@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-[#111827] mb-2">Welcome Back</h1>
+            <p class="text-[#6B7280]">Login to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-6">
+            <!-- Email Field -->
+            <div>
+                <label for="email" class="block text-sm font-semibold text-[#111827] mb-2">
+                    Email Address
+                </label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                    placeholder="john@example.com">
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="password" class="block text-sm font-semibold text-[#111827] mb-2">
+                    Password
+                </label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                    placeholder="••••••••">
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message"
+                class="hidden bg-[#FEE2E2] border border-[#E74C3C] text-[#E74C3C] px-4 py-3 rounded-lg text-sm">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full bg-[#658C58] hover:bg-[#31694E] text-white font-semibold py-3 rounded-xl transition-all duration-200 tracking-wide">
+                Login
+            </button>
+        </form>
+
+        <!-- Register Link -->
+        <p class="text-center text-[#6B7280] text-sm mt-6">
+            Don't have an account?
+            <a href="/register" class="text-[#658C58] hover:text-[#31694E] font-semibold">
+                Register here
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { setToken } from '/static/js/auth.js';
+    import { showToast } from '/static/js/utils.js';
+
+    const form = document.getElementById('login-form');
+    const errorDiv = document.getElementById('error-message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Hide previous errors
+        errorDiv.classList.add('hidden');
+
+        // Get form data
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Create form data for OAuth2
+        const formData = new URLSearchParams();
+        formData.append('username', email);  // OAuth2 uses 'username' field
+        formData.append('password', password);
+
+        try {
+            // Submit login request
+            const response = await fetch('/api/auth/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                // Success - store token and redirect
+                const data = await response.json();
+                setToken(data.access_token);
+                showToast('Login successful!', 'success');
+
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 500);
+            } else {
+                // Error - show message
+                const data = await response.json();
+                errorDiv.textContent = data.detail || 'Login failed';
+                errorDiv.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}

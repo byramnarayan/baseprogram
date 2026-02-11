@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-2xl text-center">
+        <h1 class="text-4xl font-heading text-retro-dark mb-md">🏆 Leaderboard</h1>
+        <p class="text-xl font-body text-gray-700">Top users ranked by points</p>
+    </div>
+
+    <!-- Leaderboard Table -->
+    <div class="card-retro overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-retro-dark text-retro-yellow">
+                    <tr>
+                        <th class="px-lg py-lg text-left text-lg font-heading">Rank</th>
+                        <th class="px-lg py-lg text-left text-lg font-heading">User</th>
+                        <th class="px-lg py-lg text-left text-lg font-heading">Username</th>
+                        <th class="px-lg py-lg text-right text-lg font-heading">Points</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body" class="divide-y divide-gray-200">
+                    <!-- Loading state -->
+                    <tr>
+                        <td colspan="4" class="px-lg py-2xl text-center font-body text-gray-600">
+                            Loading leaderboard...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { getCurrentUser } from '/static/js/auth.js';
+    import { showToast } from '/static/js/utils.js';
+
+    async function loadLeaderboard() {
+        try {
+            // Get current user to check if logged in
+            const currentUser = await getCurrentUser();
+
+            const response = await fetch('/api/leaderboard?limit=100');
+
+            if (!response.ok) {
+                throw new Error('Failed to load leaderboard');
+            }
+
+            const users = await response.json();
+            const tbody = document.getElementById('leaderboard-body');
+
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-lg py-2xl text-center font-body text-gray-600">
+                            No users yet. Be the first to register!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Generate table rows
+            tbody.innerHTML = users.map((user, index) => {
+                const rank = index + 1;
+                const medalEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+                // If this is the current user, redirect to dashboard instead of profile
+                const isCurrentUser = currentUser && currentUser.id === user.id;
+                const clickUrl = isCurrentUser ? '/dashboard' : `/profile/${user.id}`;
+
+                return `
+                    <tr class="hover:bg-retro-yellow hover:bg-opacity-20 transition-colors cursor-pointer" onclick="window.location.href='${clickUrl}'">
+                        <td class="px-lg py-lg">
+                            <span class="text-2xl font-heading text-retro-dark">${medalEmoji} ${rank}</span>
+                        </td>
+                        <td class="px-lg py-lg">
+                            <div class="flex items-center">
+                                <img src="${user.image_path}" alt="${user.name}" class="w-12 h-12 rounded-full mr-md object-cover border-2 border-retro-green">
+                                <span class="font-bold font-body text-retro-dark">${user.name}</span>
+                            </div>
+                        </td>
+                        <td class="px-lg py-lg font-body text-gray-700">@${user.username}</td>
+                        <td class="px-lg py-lg text-right">
+                            <span class="inline-flex items-center bg-retro-lime text-white px-md py-sm rounded-retro font-bold font-body">
+                                ${user.points} pts
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Leaderboard error:', error);
+            showToast('Failed to load leaderboard', 'error');
+        }
+    }
+
+    loadLeaderboard();
+</script>
+{% endblock %}

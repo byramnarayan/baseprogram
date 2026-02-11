@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }}{% endblock %} - FastAPI User Management</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['Fredoka One', 'cursive'],
+                        'body': ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        'retro-yellow': '#F0E491',
+                        'retro-lime': '#BBC863',
+                        'retro-green': '#658C58',
+                        'retro-dark': '#31694E',
+                        'retro-accent': '#FF6B6B',
+                    },
+                    borderRadius: {
+                        'retro': '12px',
+                    },
+                    boxShadow: {
+                        'retro': '8px 8px 0px #FF6B6B',
+                        'retro-hover': '12px 12px 0px #FF6B6B',
+                    },
+                    spacing: {
+                        'xs': '6px',
+                        'sm': '12px',
+                        'md': '18px',
+                        'lg': '24px',
+                        'xl': '30px',
+                        '2xl': '36px',
+                        '3xl': '48px',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #F0E491 0%, #BBC863 50%, #658C58 100%);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-retro {
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 0.05em;
+            box-shadow: 8px 8px 0px #FF6B6B;
+            transition: all 0.2s ease;
+        }
+
+        .btn-retro:hover {
+            box-shadow: 12px 12px 0px #FF6B6B;
+            transform: translate(-2px, -2px);
+        }
+
+        .card-retro {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .geometric-pattern {
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, .1) 10px, rgba(255, 255, 255, .1) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, .1) 10px, rgba(255, 255, 255, .1) 20px);
+        }
+    </style>
+</head>
+
+<body class="geometric-pattern">
+    <!-- Navigation -->
+    <nav class="bg-retro-dark shadow-retro mb-lg">
+        <div class="max-w-7xl mx-auto px-lg py-md">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="/" class="text-3xl font-heading text-retro-yellow hover:text-retro-lime transition-colors">
+                        Krushi Yantra
+                    </a>
+                </div>
+                <div class="flex items-center space-x-lg" id="nav-links">
+                    <!-- Public Links -->
+                    <a href="/leaderboard" class="nav-link text-retro-lime hover:text-retro-yellow">
+                        Leaderboard
+                    </a>
+
+                    <!-- Auth Links (shown when not logged in) -->
+                    <div id="auth-links" class="flex items-center space-x-lg">
+                        <a href="/login" class="nav-link text-retro-lime hover:text-retro-yellow">
+                            Login
+                        </a>
+                        <a href="/register"
+                            class="btn-retro bg-retro-yellow text-retro-dark px-lg py-md rounded-retro font-bold">
+                            Register
+                        </a>
+                    </div>
+
+                    <!-- User Links (shown when logged in) -->
+                    <div id="user-links" class="hidden flex items-center space-x-lg">
+                        <span id="user-greeting" class="text-retro-yellow font-body font-semibold">
+                            Hello, User!
+                        </span>
+                        <a href="/dashboard" class="nav-link text-retro-lime hover:text-retro-yellow">
+                            Dashboard
+                        </a>
+                        <button id="logout-btn"
+                            class="btn-retro bg-retro-accent text-white px-lg py-sm rounded-retro font-bold">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-lg py-2xl">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-retro-dark border-t-4 border-retro-accent mt-3xl">
+        <div class="max-w-7xl mx-auto px-lg py-xl text-center">
+            <p class="text-retro-yellow font-body font-semibold text-lg">
+                &copy; 2024 FastAPI User Management - Bringing the 80s Back! 🎉
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Modules -->
+    <script type="module">
+        import { getCurrentUser, logout } from '/static/js/auth.js';
+
+        // Update navbar based on authentication status
+        async function updateNavbar() {
+            const user = await getCurrentUser();
+            const authLinks = document.getElementById('auth-links');
+            const userLinks = document.getElementById('user-links');
+            const userGreeting = document.getElementById('user-greeting');
+
+            if (user) {
+                // User is logged in
+                authLinks.classList.add('hidden');
+                userLinks.classList.remove('hidden');
+                userGreeting.textContent = `Hello, ${user.name}!`;
+            } else {
+                // User is not logged in
+                authLinks.classList.remove('hidden');
+                userLinks.classList.add('hidden');
+            }
+        }
+
+        // Set up logout button
+        document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+
+        // Update navbar on page load
+        updateNavbar();
+    </script>
+
+    {% block scripts %}
+    <!-- Page-specific scripts go here -->
+    {% endblock %}
+</body>
+
+</html>

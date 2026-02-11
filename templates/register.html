@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center py-12">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-[#111827] mb-2">Create Account</h1>
+            <p class="text-[#6B7280]">Join our community today</p>
+        </div>
+
+        <!-- Registration Form -->
+        <form id="register-form" class="space-y-6">
+            <!-- Name and Username Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-[#111827] mb-2">
+                        Full Name *
+                    </label>
+                    <input type="text" id="name" name="name" required
+                        class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                        placeholder="John Doe">
+                </div>
+
+                <div>
+                    <label for="username" class="block text-sm font-semibold text-[#111827] mb-2">
+                        Username *
+                    </label>
+                    <input type="text" id="username" name="username" required
+                        class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                        placeholder="johndoe">
+                </div>
+            </div>
+
+            <!-- Email and Phone Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-[#111827] mb-2">
+                        Email Address *
+                    </label>
+                    <input type="email" id="email" name="email" required
+                        class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                        placeholder="john@example.com">
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-semibold text-[#111827] mb-2">
+                        Phone Number *
+                    </label>
+                    <input type="tel" id="phone" name="phone" required
+                        class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                        placeholder="+1234567890">
+                </div>
+            </div>
+
+            <!-- Address Field -->
+            <div>
+                <label for="address" class="block text-sm font-semibold text-[#111827] mb-2">
+                    Address (Optional)
+                </label>
+                <textarea id="address" name="address" rows="2"
+                    class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                    placeholder="123 Main Street, City, Country"></textarea>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="password" class="block text-sm font-semibold text-[#111827] mb-2">
+                    Password *
+                </label>
+                <input type="password" id="password" name="password" required minlength="8"
+                    class="w-full px-4 py-3 rounded-lg border border-[#D1D5DB] focus:border-[#658C58] focus:ring-2 focus:ring-[#658C58]/40 focus:outline-none transition-all duration-200"
+                    placeholder="••••••••">
+                <p class="text-xs text-[#6B7280] mt-1">Minimum 8 characters</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message"
+                class="hidden bg-[#FEE2E2] border border-[#E74C3C] text-[#E74C3C] px-4 py-3 rounded-lg text-sm">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full bg-[#658C58] hover:bg-[#31694E] text-white font-semibold py-3 rounded-xl transition-all duration-200 tracking-wide">
+                Create Account
+            </button>
+        </form>
+
+        <!-- Login Link -->
+        <p class="text-center text-[#6B7280] text-sm mt-6">
+            Already have an account?
+            <a href="/login" class="text-[#658C58] hover:text-[#31694E] font-semibold">
+                Login here
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { setToken } from '/static/js/auth.js';
+    import { showToast, validateEmail, validatePassword } from '/static/js/utils.js';
+
+    const form = document.getElementById('register-form');
+    const errorDiv = document.getElementById('error-message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Hide previous errors
+        errorDiv.classList.add('hidden');
+
+        // Get form data
+        const formData = {
+            name: document.getElementById('name').value,
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value || null,
+            password: document.getElementById('password').value,
+        };
+
+        // Validate email
+        if (!validateEmail(formData.email)) {
+            errorDiv.textContent = 'Please enter a valid email address';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        // Validate password
+        const passwordValidation = validatePassword(formData.password);
+        if (!passwordValidation.valid) {
+            errorDiv.textContent = passwordValidation.message;
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            // Submit registration request
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                // Success - auto-login
+                showToast('Account created successfully!', 'success');
+
+                // Login with the same credentials
+                const loginFormData = new URLSearchParams();
+                loginFormData.append('username', formData.email);
+                loginFormData.append('password', formData.password);
+
+                const loginResponse = await fetch('/api/auth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: loginFormData
+                });
+
+                if (loginResponse.ok) {
+                    const data = await loginResponse.json();
+                    setToken(data.access_token);
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 500);
+                }
+            } else {
+                // Error - show message
+                const data = await response.json();
+                errorDiv.textContent = data.detail || 'Registration failed';
+                errorDiv.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('hidden');
+        }
+    });
+</script>
+{% endblock %}
