@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Colored soil type dropdown */
+    #farm-soil-type option[value="Loamy"] {
+        background-color: #8B4513;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Clay"] {
+        background-color: #D2691E;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Sandy"] {
+        background-color: #F4A460;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Mixed"] {
+        background-color: #CD853F;
+        color: white;
+    }
+
+    #farm-soil-type option[value=""] {
+        background-color: #fff;
+        color: #333;
+    }
+
+    /* Colored crop type dropdown */
+    #farm-crop-type option[value="Rice"] {
+        background-color: #9ACD32;
+        color: white;
+    }
+
+    #farm-crop-type option[value="Wheat"] {
+        background-color: #DAA520;
+        color: white;
+    }
+
+    #farm-crop-type option[value="Vegetables"] {
+        background-color: #32CD32;
+        color: white;
+    }
+
+    #farm-crop-type option[value="Pulses"] {
+        background-color: #FFD700;
+        color: black;
+    }
+
+    #farm-crop-type option[value="Sugarcane"] {
+        background-color: #98FB98;
+        color: black;
+    }
+
+    #farm-crop-type option[value="Cotton"] {
+        background-color: #F0F8FF;
+        color: black;
+    }
+
+    #farm-crop-type option[value="Fruits"] {
+        background-color: #FF6347;
+        color: white;
+    }
+
+    #farm-crop-type option[value="Mixed Crops"] {
+        background-color: #BDB76B;
+        color: white;
+    }
+
+    #farm-crop-type option[value=""] {
+        background-color: #fff;
+        color: #333;
+    }
+
+    /* Progress Bar Styles */
+    .progress-container {
+        margin-bottom: 2rem;
+        padding: 0 2rem;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .progress-line {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+
+    .progress-line-fill {
+        height: 100%;
+        background: #31694E;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .step.active .step-number {
+        background: #31694E;
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(49, 105, 78, 0.4);
+    }
+
+    .step.completed .step-number {
+        background: #BBC863;
+        color: white;
+    }
+
+    .step.completed .step-number::after {
+        content: "✓";
+        font-size: 1.25rem;
+    }
+
+    .step-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-align: center;
+        transition: color 0.3s ease;
+    }
+
+    .step.active .step-label {
+        color: #31694E;
+        font-weight: 700;
+    }
+
+    .step.completed .step-label {
+        color: #BBC863;
+    }
+
+    /* Step Content */
+    .step-content {
+        display: none;
+    }
+
+    .step-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 3px solid #e5e7eb;
+    }
+
+    .btn-nav {
+        flex: 1;
+        transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-nav:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+</style>
+
+<div class="container mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-5xl font-heading text-retro-dark mb-4">🌾 Farm Service Dashboard</h1>
+        <p class="text-xl text-retro-dark font-body">Manage your farms and track carbon credits</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="statistics-section">
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Total Farms</p>
+            <p class="text-4xl font-heading text-retro-dark" id="stat-total-farms">0</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Total Area</p>
+            <p class="text-4xl font-heading text-retro-green" id="stat-total-area">0</p>
+            <p class="text-xs text-gray-500 mt-1">hectares</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Annual Credits</p>
+            <p class="text-4xl font-heading text-retro-lime" id="stat-annual-credits">0</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Annual Value</p>
+            <p class="text-4xl font-heading text-retro-accent" id="stat-annual-value">₹0</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between mb-6">
+        <button id="add-farm-btn"
+            class="btn-retro bg-retro-dark text-retro-yellow px-8 py-4 rounded-retro font-bold text-lg">
+            + Add New Farm
+        </button>
+        <div class="flex gap-4">
+            <button id="refresh-btn" class="btn-retro bg-retro-green text-white px-6 py-4 rounded-retro font-bold">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Farms Grid -->
+    <div id="farms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Farm cards will be dynamically inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-16">
+        <div class="card-retro p-12 max-w-2xl mx-auto">
+            <p class="text-6xl mb-4">🌱</p>
+            <h2 class="text-3xl font-heading text-retro-dark mb-4">No Farms Yet</h2>
+            <p class="text-gray-600 mb-6">Start by adding your first farm to track carbon credits</p>
+            <button class="btn-retro bg-retro-dark text-retro-yellow px-8 py-4 rounded-retro font-bold text-lg"
+                onclick="document.getElementById('add-farm-btn').click()">
+                Get Started
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Multi-Step Farm Modal -->
+<div id="farm-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    style="display: none;">
+    <div class="bg-white rounded-retro shadow-retro max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4">
+        <!-- Modal Header -->
+        <div class="p-6 border-b-4 border-retro-accent">
+            <h2 class="text-3xl font-heading text-retro-dark" id="modal-title">Add New Farm</h2>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progress-fill"></div>
+                </div>
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Basic Info</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Map Drawing</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Crop & Soil</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Steps -->
+        <form id="farm-form" class="p-6">
+            <!-- Step 1: Basic Information -->
+            <div class="step-content active" data-step="1">
+                <h3 class="text-2xl font-heading text-retro-dark mb-4">📝 Basic Information</h3>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Farm Name (Optional)</label>
+                    <input type="text" id="farm-name"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        placeholder="e.g., Sunrise Acres">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Phone Number *</label>
+                    <input type="tel" id="farm-phone"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        placeholder="9876543210" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">District *</label>
+                        <input type="text" id="farm-district"
+                            class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                            placeholder="e.g., Pune" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">State *</label>
+                        <input type="text" id="farm-state"
+                            class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                            placeholder="e.g., Maharashtra" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Map Drawing -->
+            <div class="step-content" data-step="2">
+                <h3 class="text-2xl font-heading text-retro-dark mb-4">🗺️ Draw Your Farm Boundary</h3>
+
+                <p class="text-sm text-gray-600 mb-4">
+                    <strong>📍 Instructions:</strong> Click the <strong>polygon draw tool</strong> (🔷 top-right
+                    corner),
+                    then click points on the satellite map to draw your farm boundary. Double-click or click the first
+                    point to finish.
+                </p>
+
+                <div id="farm-map" class="h-96 rounded-retro border-4 border-retro-dark mb-4"></div>
+
+                <p class="text-sm text-gray-700 bg-retro-yellow px-4 py-2 rounded-retro">
+                    📏 <strong>Calculated Area:</strong> <span id="calculated-area" class="font-bold text-retro-dark">--
+                        hectares</span>
+                </p>
+            </div>
+
+            <!-- Step 3: Crop & Soil Selection -->
+            <div class="step-content" data-step="3">
+                <h3 class="text-2xl font-heading text-retro-dark mb-4">🌾 Crop & Soil Type</h3>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-bold mb-2">What crop do you grow? *</label>
+                    <select id="farm-crop-type"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        required>
+                        <option value="">Select Crop Type</option>
+                        <option value="Rice">🌾 Rice (1.1x carbon multiplier)</option>
+                        <option value="Wheat">🌾 Wheat (1.0x multiplier - Standard)</option>
+                        <option value="Vegetables">🥬 Vegetables (0.9x multiplier)</option>
+                        <option value="Pulses">🫘 Pulses (1.2x multiplier - Nitrogen-fixing)</option>
+                        <option value="Sugarcane">🎋 Sugarcane (1.3x multiplier - Best!)</option>
+                        <option value="Cotton">🌸 Cotton (0.8x multiplier)</option>
+                        <option value="Fruits">🍎 Fruits (1.1x multiplier)</option>
+                        <option value="Mixed Crops">🌿 Mixed Crops (1.0x multiplier)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Different crops have different carbon sequestration potential
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-bold mb-2">Soil Type *</label>
+                    <select id="farm-soil-type"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        required>
+                        <option value="">Select Soil Type</option>
+                        <option value="Loamy">Loamy (1.2x multiplier - Best carbon retention)</option>
+                        <option value="Clay">Clay (1.0x multiplier - Standard)</option>
+                        <option value="Sandy">Sandy (0.8x multiplier - Lower retention)</option>
+                        <option value="Mixed">Mixed (1.0x multiplier - Average)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Soil type affects carbon storage capacity</p>
+                </div>
+
+                <!-- Summary Box -->
+                <div class="bg-retro-lime bg-opacity-20 border-2 border-retro-lime rounded-retro p-4">
+                    <h4 class="font-bold text-retro-dark mb-2">📊 Estimated Annual Carbon Credits</h4>
+                    <p class="text-sm text-gray-700 mb-2">
+                        Based on your selections, your farm will earn approximately:
+                    </p>
+                    <p class="text-3xl font-heading text-retro-dark" id="estimated-credits">--</p>
+                    <p class="text-sm text-gray-600">credits per year (₹<span id="estimated-value">--</span>)</p>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <strong>Note:</strong> New farms receive 50% credits until verified. After verification, you'll
+                        get 100% credits!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hidden Fields -->
+            <input type="hidden" id="farm-coordinates">
+            <input type="hidden" id="edit-farm-id">
+
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <button type="button" id="prev-btn"
+                    class="btn-nav btn-retro bg-gray-400 text-white px-6 py-3 rounded-retro font-bold" disabled>
+                    ← Previous
+                </button>
+                <button type="button" id="next-btn"
+                    class="btn-nav btn-retro bg-retro-green text-white px-6 py-3 rounded-retro font-bold">
+                    Next →
+                </button>
+                <button type="submit" id="submit-btn"
+                    class="btn-nav btn-retro bg-retro-dark text-retro-yellow px-6 py-3 rounded-retro font-bold"
+                    style="display: none;">
+                    💾 Save Farm
+                </button>
+                <button type="button" id="cancel-modal-btn"
+                    class="btn-retro bg-gray-400 text-white px-6 py-3 rounded-retro font-bold">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-retro-yellow"></div>
+        <p class="text-retro-yellow font-heading text-2xl mt-4">Loading...</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="/static/js/mapHandler.js"></script>
+<script type="module" src="/static/js/farmservice.js"></script>
+{% endblock %}

@@ -14,7 +14,7 @@ Key Concepts for Interns:
 from datetime import datetime
 
 from sqlalchemy import Index, Integer, String, Text, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 
@@ -77,6 +77,13 @@ class User(Base):
     __table_args__ = (
         Index('idx_user_email_lower', 'email'),  # Case-insensitive email lookup
         Index('idx_user_username_lower', 'username'),  # Case-insensitive username lookup
+    )
+    
+    # Relationship with Farm model
+    farms: Mapped[list["Farm"]] = relationship(  # type: ignore
+        "Farm",
+        back_populates="owner",
+        cascade="all, delete-orphan",  # Delete farms when user is deleted
     )
     
     @property

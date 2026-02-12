@@ -1,14 +1,36 @@
-"""Schemas package - Pydantic models for request/response validation"""
+"""
+Pydantic Schemas
 
-from schemas.auth import Token, TokenData
-from schemas.user import UserBase, UserCreate, UserPublic, UserPrivate, UserUpdate
+This package contains all Pydantic schemas for request/response validation.
+"""
+
+from .user import (
+    UserBase,
+    UserCreate,
+    UserPublic,
+    UserPrivate,
+    UserUpdate,
+)
+from .auth import Token, TokenData
+from .farm import (
+    FarmCreate,
+    FarmUpdate,
+    FarmResponse,
+    FarmStatistics,
+    FarmListResponse,
+)
 
 __all__ = [
-    "Token",
-    "TokenData",
     "UserBase",
     "UserCreate",
     "UserPublic",
     "UserPrivate",
     "UserUpdate",
+    "Token",
+    "TokenData",
+    "FarmCreate",
+    "FarmUpdate",
+    "FarmResponse",
+    "FarmStatistics",
+    "FarmListResponse",
 ]

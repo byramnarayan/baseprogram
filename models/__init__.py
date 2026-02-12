@@ -1,5 +1,10 @@
-"""Models package - Database models for the application"""
+"""
+Database Models
 
-from models.user import User
+This package contains all SQLAlchemy models for the application.
+"""
 
-__all__ = ["User"]
+from .user import User
+from .farm import Farm
+
+__all__ = ["User", "Farm"]
