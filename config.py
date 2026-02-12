@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     app_name: str = "FastAPI User Management"
     debug: bool = False  # Always False in production!
 
+    # Neo4j Settings
+    neo4j_uri: str
+    neo4j_username: str
+    neo4j_password: str
+    neo4j_database: str
+    aura_instanceid: str
+    aura_instancename: str
+
 
 # Create a single instance to be imported throughout the application
 # This follows the Singleton pattern - one configuration object for the entire app
