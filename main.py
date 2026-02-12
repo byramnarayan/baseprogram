@@ -25,7 +25,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 
 from database import engine, Base
-from routers import auth, users, leaderboard
+from routers import auth, users, leaderboard, farmservice
 
 
 @asynccontextmanager
@@ -95,6 +95,7 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(auth.router)  # /api/auth/*
 app.include_router(users.router)  # /api/users/*
 app.include_router(leaderboard.router)  # /api/leaderboard/*
+app.include_router(farmservice.router)  # /farmservice and /api/farmservice/*
 
 
 # ============================================================================

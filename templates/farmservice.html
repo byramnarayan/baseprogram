@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Colored soil type dropdown */
+    #farm-soil-type {
+        background-color: #fff;
+        padding-right: 2.5rem;
+    }
+
+    #farm-soil-type option {
+        padding: 10px;
+        font-weight: 600;
+    }
+
+    #farm-soil-type option[value="Loamy"] {
+        background-color: #8B4513;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Clay"] {
+        background-color: #D2691E;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Sandy"] {
+        background-color: #F4A460;
+        color: white;
+    }
+
+    #farm-soil-type option[value="Mixed"] {
+        background-color: #CD853F;
+        color: white;
+    }
+
+    #farm-soil-type option[value=""] {
+        background-color: #fff;
+        color: #333;
+    }
+</style>
+<div class="container mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-5xl font-heading text-retro-dark mb-4">🌾 Farm Service Dashboard</h1>
+        <p class="text-xl text-retro-dark font-body">Manage your farms and track carbon credits</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="statistics-section">
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Total Farms</p>
+            <p class="text-4xl font-heading text-retro-dark" id="stat-total-farms">0</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Total Area</p>
+            <p class="text-4xl font-heading text-retro-green" id="stat-total-area">0</p>
+            <p class="text-xs text-gray-500 mt-1">hectares</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Annual Credits</p>
+            <p class="text-4xl font-heading text-retro-lime" id="stat-annual-credits">0</p>
+        </div>
+        <div class="card-retro p-6 text-center">
+            <p class="text-sm text-gray-600 font-bold uppercase mb-2">Annual Value</p>
+            <p class="text-4xl font-heading text-retro-accent" id="stat-annual-value">₹0</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between mb-6">
+        <button id="add-farm-btn"
+            class="btn-retro bg-retro-dark text-retro-yellow px-8 py-4 rounded-retro font-bold text-lg">
+            + Add New Farm
+        </button>
+        <div class="flex gap-4">
+            <button id="refresh-btn" class="btn-retro bg-retro-green text-white px-6 py-4 rounded-retro font-bold">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Farms Grid -->
+    <div id="farms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Farm cards will be dynamically inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-16">
+        <div class="card-retro p-12 max-w-2xl mx-auto">
+            <p class="text-6xl mb-4">🌱</p>
+            <h2 class="text-3xl font-heading text-retro-dark mb-4">No Farms Yet</h2>
+            <p class="text-gray-600 mb-6">Start by adding your first farm to track carbon credits</p>
+            <button class="btn-retro bg-retro-dark text-retro-yellow px-8 py-4 rounded-retro font-bold text-lg"
+                onclick="document.getElementById('add-farm-btn').click()">
+                Get Started
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Farm Modal -->
+<div id="farm-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    style="display: none;">
+    <div class="bg-white rounded-retro shadow-retro max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4">
+        <div class="p-6 border-b-4 border-retro-accent">
+            <h2 class="text-3xl font-heading text-retro-dark" id="modal-title">Add New Farm</h2>
+        </div>
+
+        <div class="p-6">
+            <form id="farm-form">
+                <!-- Farm Name -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Farm Name (Optional)</label>
+                    <input type="text" id="farm-name"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        placeholder="e.g., Sunrise Acres">
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Phone Number</label>
+                    <input type="tel" id="farm-phone"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        placeholder="9876543210" required>
+                </div>
+
+                <!-- District and State -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">District</label>
+                        <input type="text" id="farm-district"
+                            class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                            placeholder="e.g., Pune" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">State</label>
+                        <input type="text" id="farm-state"
+                            class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                            placeholder="e.g., Maharashtra" required>
+                    </div>
+                </div>
+
+                <!-- Soil Type -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Soil Type</label>
+                    <select id="farm-soil-type"
+                        class="w-full px-4 py-3 rounded-retro border-2 border-gray-300 focus:border-retro-dark focus:outline-none"
+                        required>
+                        <option value="">Select Soil Type</option>
+                        <option value="Loamy">Loamy (1.2x multiplier - Best carbon retention)</option>
+                        <option value="Clay">Clay (1.0x multiplier - Standard)</option>
+                        <option value="Sandy">Sandy (0.8x multiplier - Lower retention)</option>
+                        <option value="Mixed">Mixed (1.0x multiplier - Average)</option>
+                    </select>
+                </div>
+
+                <!-- Map Section -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">Farm Boundary (Draw on Map)</label>
+                    <p class="text-sm text-gray-600 mb-2">
+                        <strong>📍 Instructions:</strong> Click the <strong>polygon draw tool</strong> (� top-right
+                        corner), then click points on the satellite map to draw your farm boundary. Double-click or
+                        click the first point to finish. Area will be shown automatically.
+                    </p>
+                    <div id="farm-map" class="h-96 rounded-retro border-4 border-retro-dark"></div>
+                    <p class="text-sm text-gray-700 mt-2 bg-retro-yellow px-4 py-2 rounded-retro">
+                        📏 <strong>Calculated Area:</strong> <span id="calculated-area"
+                            class="font-bold text-retro-dark">-- hectares</span>
+                    </p>
+                </div>
+
+                <!-- Hidden field for coordinates -->
+                <input type="hidden" id="farm-coordinates">
+                <input type="hidden" id="edit-farm-id">
+
+                <!-- Buttons -->
+                <div class="flex gap-4 mt-6">
+                    <button type="submit"
+                        class="btn-retro bg-retro-dark text-retro-yellow px-8 py-4 rounded-retro font-bold flex-1">
+                        Save Farm
+                    </button>
+                    <button type="button" id="cancel-modal-btn"
+                        class="btn-retro bg-gray-400 text-white px-8 py-4 rounded-retro font-bold">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-retro-yellow"></div>
+        <p class="text-retro-yellow font-heading text-2xl mt-4">Loading...</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="/static/js/mapHandler.js"></script>
+<script type="module" src="/static/js/farmservice.js"></script>
+{% endblock %}
