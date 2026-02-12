@@ -2,6 +2,7 @@
  * Farm Service Module
  * 
  * Handles all farm-related operations:
+ * - Multi-step form navigation
  * - Load and display farms
  * - Create, update, delete farms
  * - Update statistics
@@ -23,6 +24,8 @@ import {
 const API_BASE = '/api/farmservice';
 let currentEditId = null;
 let farmMaps = {}; // Store preview map instances
+let currentStep = 1;
+const totalSteps = 3;
 
 /**
  * Check authentication and redirect if not logged in
@@ -70,6 +73,216 @@ function showError(message) {
 function showSuccess(message) {
     alert(`Success: ${message}`);
 }
+
+// ============================================================================
+// Multi-Step Navigation
+// ============================================================================
+
+/**
+ * Update progress bar
+ */
+function updateProgressBar() {
+    const progressFill = document.getElementById('progress-fill');
+    const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    progressFill.style.width = `${percentage}%`;
+
+    // Update step indicators
+    document.querySelectorAll('.step').forEach((step, index) => {
+        const stepNumber = index + 1;
+        step.classList.remove('active', 'completed');
+
+        if (stepNumber < currentStep) {
+            step.classList.add('completed');
+        } else if (stepNumber === currentStep) {
+            step.classList.add('active');
+        }
+    });
+}
+
+/**
+ * Show specific step
+ */
+function showStep(stepNumber) {
+    // Hide all steps
+    document.querySelectorAll('.step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Show current step
+    const stepContent = document.querySelector(`.step-content[data-step="${stepNumber}"]`);
+    if (stepContent) {
+        stepContent.classList.add('active');
+    }
+
+    // Update button visibility
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+
+    prevBtn.disabled = stepNumber === 1;
+
+    if (stepNumber === totalSteps) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+    } else {
+        nextBtn.style.display = 'block';
+        submitBtn.style.display = 'none';
+    }
+
+    // Initialize map when step 2 is shown
+    if (stepNumber === 2) {
+        setTimeout(() => {
+            initializeMap('farm-map', null, DEFAULT_ZOOM);
+        }, 100);
+    }
+
+    // Update estimated credits when step 3 is shown
+    if (stepNumber === 3) {
+        updateEstimatedCredits();
+    }
+
+    updateProgressBar();
+}
+
+/**
+ * Validate current step
+ */
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        // Validate basic info
+        const phone = document.getElementById('farm-phone').value;
+        const district = document.getElementById('farm-district').value;
+        const state = document.getElementById('farm-state').value;
+
+        if (!phone || !district || !state) {
+            showError('Please fill in all required fields (Phone, District, State)');
+            return false;
+        }
+
+        if (phone.length < 10) {
+            showError('Phone number must be at least 10 digits');
+            return false;
+        }
+
+        return true;
+    }
+
+    if (currentStep === 2) {
+        // Validate map drawing
+        if (!hasDrawnPolygon()) {
+            showError('Please draw your farm boundary on the map');
+            return false;
+        }
+
+        const coordinates = getDrawnCoordinates();
+        if (!coordinates || coordinates.length < 3) {
+            showError('Farm boundary must have at least 3 points');
+            return false;
+        }
+
+        return true;
+    }
+
+    if (currentStep === 3) {
+        // Validate crop and soil selection
+        const cropType = document.getElementById('farm-crop-type').value;
+        const soilType = document.getElementById('farm-soil-type').value;
+
+        if (!cropType || !soilType) {
+            showError('Please select both crop type and soil type');
+            return false;
+        }
+
+        return true;
+    }
+
+    return true;
+}
+
+/**
+ * Go to next step
+ */
+function nextStep() {
+    if (!validateCurrentStep()) {
+        return;
+    }
+
+    if (currentStep < totalSteps) {
+        currentStep++;
+        showStep(currentStep);
+    }
+}
+
+/**
+ * Go to previous step
+ */
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+}
+
+/**
+ * Calculate estimated credits based on current selections
+ */
+function updateEstimatedCredits() {
+    const coordinates = getDrawnCoordinates();
+    if (!coordinates || coordinates.length < 3) {
+        document.getElementById('estimated-credits').textContent = '--';
+        document.getElementById('estimated-value').textContent = '--';
+        return;
+    }
+
+    // Get area from displayed value
+    const areaText = document.getElementById('calculated-area').textContent;
+    const area = parseFloat(areaText);
+
+    if (isNaN(area) || area <= 0) {
+        document.getElementById('estimated-credits').textContent = '--';
+        document.getElementById('estimated-value').textContent = '--';
+        return;
+    }
+
+    // Get multipliers
+    const cropType = document.getElementById('farm-crop-type').value;
+    const soilType = document.getElementById('farm-soil-type').value;
+
+    const cropMultipliers = {
+        "Rice": 1.1,
+        "Wheat": 1.0,
+        "Vegetables": 0.9,
+        "Pulses": 1.2,
+        "Sugarcane": 1.3,
+        "Cotton": 0.8,
+        "Fruits": 1.1,
+        "Mixed Crops": 1.0
+    };
+
+    const soilMultipliers = {
+        "Loamy": 1.2,
+        "Clay": 1.0,
+        "Sandy": 0.8,
+        "Mixed": 1.0
+    };
+
+    const cropMultiplier = cropType ? (cropMultipliers[cropType] || 1.0) : 1.0;
+    const soilMultiplier = soilType ? (soilMultipliers[soilType] || 1.0) : 1.0;
+
+    // Calculate credits (unverified = 50%)
+    const baseRate = 12.5;
+    const verificationMultiplier = 0.5; // New farms are unverified
+
+    const credits = area * soilMultiplier * cropMultiplier * baseRate * verificationMultiplier;
+    const value = credits * 500; // ₹500 per credit
+
+    document.getElementById('estimated-credits').textContent = credits.toFixed(2);
+    document.getElementById('estimated-value').textContent = value.toLocaleString('en-IN');
+}
+
+// ============================================================================
+// Farm CRUD Operations
+// ============================================================================
 
 /**
  * Load all farms from API
@@ -171,6 +384,7 @@ function createFarmCard(farm) {
                 <p><span class="font-bold">📍 Location:</span> ${farm.district}, ${farm.state}</p>
                 <p><span class="font-bold">📏 Area:</span> ${farm.area_hectares.toFixed(2)} hectares</p>
                 <p><span class="font-bold">🌱 Soil Type:</span> ${farm.soil_type}</p>
+                <p><span class="font-bold">🌾 Crop Type:</span> ${farm.crop_type}</p>
                 <p><span class="font-bold">💰 Annual Credits:</span> ${farm.annual_credits.toFixed(2)}</p>
                 <p><span class="font-bold">💵 Annual Value:</span> ₹${farm.annual_value_inr.toLocaleString('en-IN')}</p>
             </div>
@@ -192,18 +406,20 @@ function createFarmCard(farm) {
  */
 function showAddFarmModal() {
     currentEditId = null;
+    currentStep = 1;
+
     document.getElementById('modal-title').textContent = 'Add New Farm';
     document.getElementById('farm-form').reset();
     document.getElementById('edit-farm-id').value = '';
     clearMap();
 
-    // Show modal
-    document.getElementById('farm-modal').style.display = 'flex';
+    // Reset estimated credits
+    document.getElementById('estimated-credits').textContent = '--';
+    document.getElementById('estimated-value').textContent = '--';
 
-    // Initialize map with slight delay - use null for auto-centering to user location
-    setTimeout(() => {
-        initializeMap('farm-map', null, DEFAULT_ZOOM);
-    }, 100);
+    // Show modal and first step
+    document.getElementById('farm-modal').style.display = 'flex';
+    showStep(1);
 }
 
 /**
@@ -226,6 +442,8 @@ async function editFarm(farmId) {
         const farm = await response.json();
 
         currentEditId = farmId;
+        currentStep = 1;
+
         document.getElementById('modal-title').textContent = 'Edit Farm';
         document.getElementById('edit-farm-id').value = farmId;
 
@@ -235,15 +453,19 @@ async function editFarm(farmId) {
         document.getElementById('farm-district').value = farm.district;
         document.getElementById('farm-state').value = farm.state;
         document.getElementById('farm-soil-type').value = farm.soil_type;
+        document.getElementById('farm-crop-type').value = farm.crop_type;
 
         // Show modal
         document.getElementById('farm-modal').style.display = 'flex';
+        showStep(1);
 
-        // Initialize map and draw existing boundary
+        // Store coordinates for step 2
         setTimeout(() => {
-            initializeMap('farm-map', [farm.latitude, farm.longitude], 13);
-            drawFarmBoundary(farm.polygon_coordinates, true);
-        }, 100);
+            if (farm.polygon_coordinates) {
+                initializeMap('farm-map', [farm.latitude, farm.longitude], 13);
+                drawFarmBoundary(farm.polygon_coordinates, true);
+            }
+        }, 500);
 
     } catch (error) {
         console.error('Error loading farm:', error);
@@ -292,6 +514,11 @@ async function deleteFarm(farmId, farmName) {
 async function submitFarmForm(event) {
     event.preventDefault();
 
+    // Final validation
+    if (!validateCurrentStep()) {
+        return;
+    }
+
     // Validate polygon is drawn
     if (!hasDrawnPolygon()) {
         showError('Please draw the farm boundary on the map');
@@ -311,6 +538,7 @@ async function submitFarmForm(event) {
         district: document.getElementById('farm-district').value,
         state: document.getElementById('farm-state').value,
         soil_type: document.getElementById('farm-soil-type').value,
+        crop_type: document.getElementById('farm-crop-type').value,
         polygon_coordinates: coordinates
     };
 
@@ -374,6 +602,7 @@ async function submitFarmForm(event) {
  */
 function closeModal() {
     document.getElementById('farm-modal').style.display = 'none';
+    currentStep = 1;
 }
 
 // Initialize on page load
@@ -391,6 +620,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('refresh-btn').addEventListener('click', loadFarms);
     document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
     document.getElementById('farm-form').addEventListener('submit', submitFarmForm);
+
+    // Multi-step navigation
+    document.getElementById('prev-btn').addEventListener('click', previousStep);
+    document.getElementById('next-btn').addEventListener('click', nextStep);
+
+    // Update estimated credits when selections change
+    document.getElementById('farm-crop-type').addEventListener('change', updateEstimatedCredits);
+    document.getElementById('farm-soil-type').addEventListener('change', updateEstimatedCredits);
 
     // Close modal when clicking outside
     document.getElementById('farm-modal').addEventListener('click', (e) => {

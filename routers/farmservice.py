@@ -167,10 +167,11 @@ async def create_farm(
         # Calculate center point
         center_lat, center_lon = get_polygon_center(farm_data.polygon_coordinates)
         
-        # Calculate carbon credits (unverified farms get 50% credits)
+        # Calculate carbon credits and value
         annual_credits = calculate_annual_credits(
             area_hectares=area_hectares,
             soil_type=farm_data.soil_type,
+            crop_type=farm_data.crop_type,
             is_verified=False,  # New farms start unverified
         )
         
@@ -186,6 +187,7 @@ async def create_farm(
             longitude=center_lon,
             area_hectares=area_hectares,
             soil_type=farm_data.soil_type,
+            crop_type=farm_data.crop_type,
             district=farm_data.district,
             state=farm_data.state,
             annual_credits=annual_credits,
@@ -308,43 +310,45 @@ async def update_farm(
         recalculate_area = False
         recalculate_credits = False
         
-        # Update provided fields
+        # Update fields if provided
         if farm_data.farm_name is not None:
             farm.farm_name = farm_data.farm_name
-        
         if farm_data.phone is not None:
             farm.phone = farm_data.phone
-        
         if farm_data.district is not None:
             farm.district = farm_data.district
-        
         if farm_data.state is not None:
             farm.state = farm_data.state
-        
         if farm_data.soil_type is not None:
             farm.soil_type = farm_data.soil_type
-            recalculate_credits = True
+        if farm_data.crop_type is not None:
+            farm.crop_type = farm_data.crop_type
         
+        # If polygon changed, recalculate area and center
         if farm_data.polygon_coordinates is not None:
             farm.polygon_coordinates = farm_data.polygon_coordinates
-            recalculate_area = True
-            recalculate_credits = True
+            
+            # Recalculate area
+            area_hectares = calculate_area_from_polygon(farm_data.polygon_coordinates)
+            farm.area_hectares = area_hectares
+            
+            # Recalculate center
+            latitude, longitude = get_polygon_center(farm_data.polygon_coordinates)
+            farm.latitude = latitude
+            farm.longitude = longitude
         
-        # Recalculate area if polygon changed
-        if recalculate_area:
-            farm.area_hectares = calculate_area_from_polygon(farm.polygon_coordinates)
-            center_lat, center_lon = get_polygon_center(farm.polygon_coordinates)
-            farm.latitude = center_lat
-            farm.longitude = center_lon
-        
-        # Recalculate credits if area or soil type changed
-        if recalculate_credits:
-            farm.annual_credits = calculate_annual_credits(
+        # Recalculate credits if area, soil, or crop changed
+        if (farm_data.polygon_coordinates is not None or 
+            farm_data.soil_type is not None or 
+            farm_data.crop_type is not None):
+            annual_credits = calculate_annual_credits(
                 area_hectares=farm.area_hectares,
                 soil_type=farm.soil_type,
-                is_verified=farm.is_verified,
+                crop_type=farm.crop_type,
+                is_verified=farm.is_verified
             )
-            farm.annual_value_inr = calculate_annual_value(farm.annual_credits)
+            farm.annual_credits = annual_credits
+            farm.annual_value_inr = calculate_annual_value(annual_credits)
         
         # Save changes
         await db.commit()

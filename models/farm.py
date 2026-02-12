@@ -89,9 +89,13 @@ class Farm(Base):
     
     # Agricultural Data
     soil_type: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-        # Valid values: "Loamy", "Clay", "Sandy", "Mixed"
+        String(50), nullable=False, index=True,
+        comment="Type of soil: Loamy, Clay, Sandy, or Mixed"
+    )
+    
+    crop_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True,
+        comment="Primary crop grown: Rice, Wheat, Vegetables, Pulses, Sugarcane, Cotton, Fruits, or Mixed Crops"
     )
     
     # Location Data

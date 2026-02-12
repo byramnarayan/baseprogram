@@ -68,6 +68,11 @@ class FarmCreate(BaseModel):
         description="Type of soil (affects carbon sequestration rate)"
     )
     
+    crop_type: Literal["Rice", "Wheat", "Vegetables", "Pulses", "Sugarcane", "Cotton", "Fruits", "Mixed Crops"] = Field(
+        ...,
+        description="Primary crop grown on the farm (affects carbon sequestration rate)"
+    )
+    
     polygon_coordinates: List[List[float]] = Field(
         ...,
         description="Array of [latitude, longitude] coordinate pairs defining farm boundary",
@@ -136,6 +141,7 @@ class FarmCreate(BaseModel):
                 "district": "Pune",
                 "state": "Maharashtra",
                 "soil_type": "Loamy",
+                "crop_type": "Rice",
                 "polygon_coordinates": [
                     [18.5204, 73.8567],
                     [18.5214, 73.8567],
@@ -159,6 +165,7 @@ class FarmUpdate(BaseModel):
     district: Optional[str] = Field(None, min_length=2, max_length=100)
     state: Optional[str] = Field(None, min_length=2, max_length=100)
     soil_type: Optional[Literal["Loamy", "Clay", "Sandy", "Mixed"]] = None
+    crop_type: Optional[Literal["Rice", "Wheat", "Vegetables", "Pulses", "Sugarcane", "Cotton", "Fruits", "Mixed Crops"]] = None
     polygon_coordinates: Optional[List[List[float]]] = None
     
     @field_validator("polygon_coordinates")
@@ -219,6 +226,7 @@ class FarmResponse(BaseModel):
     longitude: float
     area_hectares: float
     soil_type: str
+    crop_type: str
     district: str
     state: str
     annual_credits: float

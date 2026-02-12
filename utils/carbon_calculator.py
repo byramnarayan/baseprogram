@@ -14,79 +14,111 @@ Key Concepts:
 from typing import Dict
 
 
-# Soil type multipliers based on carbon sequestration capacity
-# These values reflect how well different soil types capture and retain carbon
+# Soil type multipliers for carbon sequestration
+# Different soil types have varying capacity to store carbon
 SOIL_TYPE_MULTIPLIERS: Dict[str, float] = {
-    "Loamy": 1.2,   # Best for carbon sequestration (well-balanced soil)
-    "Clay": 1.0,    # Standard retention (dense, holds nutrients)
-    "Sandy": 0.8,   # Lower retention (loose, drains quickly)
-    "Mixed": 1.0,   # Average of various soil types
+    "Loamy": 1.2,    # Best for carbon retention - rich organic matter
+    "Clay": 1.0,     # Standard retention - dense structure
+    "Sandy": 0.8,    # Lower retention - loose structure
+    "Mixed": 1.0,    # Average of different soil types
 }
 
-# Base rate: Credits per hectare per year
-# This is the baseline for a standard farm
+# Crop type multipliers for carbon sequestration
+# Different crops have varying carbon sequestration potential
+CROP_TYPE_MULTIPLIERS: Dict[str, float] = {
+    "Rice": 1.1,          # Paddy fields have high carbon sequestration
+    "Wheat": 1.0,         # Standard crop baseline
+    "Vegetables": 0.9,    # Shorter growth cycles, less biomass
+    "Pulses": 1.2,        # Nitrogen-fixing crops, improve soil carbon
+    "Sugarcane": 1.3,     # High biomass production, excellent carbon storage
+    "Cotton": 0.8,        # Lower carbon retention
+    "Fruits": 1.1,        # Perennial crops with long-term carbon storage
+    "Mixed Crops": 1.0,   # Average of different crops
+}
+
+# Base credit rate per hectare per year
+# This represents the baseline carbon sequestration potential
 BASE_CREDIT_RATE = 12.5  # credits/hectare/year
 
-# Default market rate per credit (in INR)
-# This can be made dynamic in the future by fetching from a market_rates table
-DEFAULT_MARKET_RATE_INR = 500.0  # ₹500 per credit
+# Market rate per carbon credit in INR
+# Current rate: ₹500 per credit
+MARKET_RATE_PER_CREDIT = 500.0  # ₹500 per credit
+
+# Verification multiplier
+# Unverified farms get 50% credits until they are verified by authorities
+VERIFICATION_MULTIPLIER_UNVERIFIED = 0.5
+VERIFICATION_MULTIPLIER_VERIFIED = 1.0
+
+
+# Calculation Formula:
+# -------------------
+# Annual Credits = Area (ha) × Soil Multiplier × Crop Multiplier × Base Rate × Verification Multiplier
+#
+# Where:
+# - Area: Farm area in hectares
+# - Soil Multiplier: 1.2 (Loamy), 1.0 (Clay/Mixed), 0.8 (Sandy)
+# - Crop Multiplier: 1.3 (Sugarcane), 1.2 (Pulses), 1.1 (Rice/Fruits), 1.0 (Wheat/Mixed), 0.9 (Vegetables), 0.8 (Cotton)
+# - Base Rate: 12.5 credits/hectare/year
+# - Verification: 0.5 (unverified) or 1.0 (verified)
 
 
 def calculate_annual_credits(
     area_hectares: float,
     soil_type: str,
+    crop_type: str,
     is_verified: bool = False
 ) -> float:
     """
     Calculate annual carbon credits for a farm.
     
-    Formula:
-        credits = area × soil_multiplier × base_rate × verification_multiplier
-    
     Args:
         area_hectares: Farm area in hectares
-        soil_type: Type of soil ("Loamy", "Clay", "Sandy", "Mixed")
-        is_verified: Whether farm is verified by a validator (default: False)
-        
+        soil_type: Type of soil (Loamy, Clay, Sandy, Mixed)
+        crop_type: Type of crop (Rice, Wheat, Vegetables, Pulses, Sugarcane, Cotton, Fruits, Mixed Crops)
+        is_verified: Whether the farm is verified by authorities
+    
     Returns:
         float: Annual carbon credits
-        
+    
     Raises:
-        ValueError: If soil_type is not recognized or area is invalid
-        
+        ValueError: If inputs are invalid
+    
     Example:
-        >>> # 2.5 hectare farm with loamy soil (verified)
-        >>> credits = calculate_annual_credits(2.5, "Loamy", True)
-        >>> print(f"Annual credits: {credits}")
-        Annual credits: 37.5
+        >>> calculate_annual_credits(5.0, "Loamy", "Sugarcane", True)
+        97.5  # 5 × 1.2 × 1.3 × 12.5 × 1.0 = 97.5 credits
         
-        >>> # Same farm but unverified (gets 50% credits)
-        >>> credits = calculate_annual_credits(2.5, "Loamy", False)
-        >>> print(f"Annual credits: {credits}")
-        Annual credits: 18.75
+        >>> calculate_annual_credits(5.0, "Loamy", "Rice", False)
+        41.25  # 5 × 1.2 × 1.1 × 12.5 × 0.5 = 41.25 credits (unverified)
     """
     # Validate inputs
     if area_hectares <= 0:
-        raise ValueError(f"Invalid area: {area_hectares}. Area must be positive.")
+        raise ValueError("Area must be positive")
     
     if soil_type not in SOIL_TYPE_MULTIPLIERS:
         raise ValueError(
             f"Invalid soil type: {soil_type}. "
-            f"Must be one of: {list(SOIL_TYPE_MULTIPLIERS.keys())}"
+            f"Must be one of: {', '.join(SOIL_TYPE_MULTIPLIERS.keys())}"
         )
     
-    # Get soil multiplier
+    if crop_type not in CROP_TYPE_MULTIPLIERS:
+        raise ValueError(
+            f"Invalid crop type: {crop_type}. "
+            f"Must be one of: {', '.join(CROP_TYPE_MULTIPLIERS.keys())}"
+        )
+    
+    # Get multipliers
     soil_multiplier = SOIL_TYPE_MULTIPLIERS[soil_type]
+    crop_multiplier = CROP_TYPE_MULTIPLIERS[crop_type]
+    verification_multiplier = (
+        VERIFICATION_MULTIPLIER_VERIFIED if is_verified 
+        else VERIFICATION_MULTIPLIER_UNVERIFIED
+    )
     
-    # Verification multiplier
-    # Unverified farms get 50% credits (pending validation)
-    # Verified farms get 100% credits (fully validated)
-    verification_multiplier = 1.0 if is_verified else 0.5
-    
-    # Calculate credits
+    # Calculate annual credits
     annual_credits = (
         area_hectares *
         soil_multiplier *
+        crop_multiplier *
         BASE_CREDIT_RATE *
         verification_multiplier
     )
@@ -94,7 +126,7 @@ def calculate_annual_credits(
     # Round to 2 decimal places
     return round(annual_credits, 2)
 
-
+DEFAULT_MARKET_RATE_INR = 500.0
 def calculate_annual_value(
     credits: float,
     market_rate: float = DEFAULT_MARKET_RATE_INR
