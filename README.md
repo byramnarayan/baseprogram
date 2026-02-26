@@ -1,964 +1,350 @@
-# Carbon Credit Farm Management System - Technical Documentation
+# Krushi Yantra — Carbon Credit Farm Management System
 
-A comprehensive, production-ready **FastAPI** application for carbon credit farm management with geospatial features, JWT authentication, and Neo4j graph database integration.
+A production-ready **FastAPI** application for carbon credit farm management with AI assistant, voice interaction, gamified plant discovery, geospatial features, JWT authentication, and Neo4j graph database integration.
 
 ---
 
 ## 🎯 Project Overview
 
-This system enables farmers to register their farms, calculate carbon credits based on soil type and area, and manage their farm portfolios through an authenticated web application. The system uses modern async Python with SQLAlchemy ORM for relational data and Neo4j for graph-based relationships.
+Krushi Yantra enables Indian farmers to register their farms, calculate carbon credits, interact with an agriculture-specific AI assistant (powered by Sarvam AI), and gamify plant discovery — all through a secure, async web application.
 
 ### Core Features
 
-- 🔐 **JWT-Based Authentication** - Secure token-based user authentication
-- 🌾 **Farm Management** - CRUD operations for farms with geospatial data
-- 📊 **Carbon Credit Calculation** - Dynamic calculation based on soil type, area, and verification status
-- 🗺️ **Geospatial Support** - Polygon-based farm boundaries with area calculation
-- 👥 **User Management** - Profile management with role-based access
-- 📈 **Dashboard Analytics** - Aggregated statistics and leaderboard
-- 🎨 **Modern Frontend** - Server-side rendered Jinja2 templates with interactive JavaScript
+| Feature | Description |
+|---|---|
+| 🔐 **JWT Authentication** | Secure token-based user auth with bcrypt passwords |
+| 🌾 **Farm Management** | CRUD for farms with geospatial polygon data |
+| 📊 **Carbon Credits** | Dynamic calculation by soil type, area, and verification status |
+| 🤖 **AI Assistant** | Sarvam LLM with per-user mem0 memory, voice STT/TTS, conversation history |
+| 🌿 **Plant Discovery** | PlantNet identification, hexagonal badges, growing tree, daily streaks |
+| 🗺️ **Geospatial** | Polygon-based farm boundaries with area calculation |
+| 👥 **User Profiles** | Profile management with points and rankings |
+| 📈 **Leaderboard** | Real-time farmer rankings |
 
 ---
 
 ## 🏗️ System Architecture
 
-### High-Level Architecture
-
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend Layer                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Jinja2     │  │  JavaScript  │  │  TailwindCSS │      │
-│  │  Templates   │  │   Modules    │  │    Styles    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ HTTP/REST
-┌─────────────────────────────────────────────────────────────┐
-│                      Application Layer                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │    FastAPI   │  │   Routers    │  │     Auth     │      │
-│  │   main.py    │  │  (Endpoints) │  │  Middleware  │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                       Business Layer                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Schemas    │  │   Utilities  │  │  Validators  │      │
-│  │  (Pydantic)  │  │  (Calculators)│ │  (Business)  │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                        Data Layer                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │  SQLAlchemy  │  │    Models    │  │   Database   │      │
-│  │     ORM      │  │   (User,     │  │   Session    │      │
-│  │              │  │    Farm)     │  │  Management  │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                       Storage Layer                          │
-│  ┌──────────────┐              ┌──────────────┐            │
-│  │   SQLite     │              │    Neo4j     │            │
-│  │   (Primary)  │              │   (Graph)    │            │
-│  └──────────────┘              └──────────────┘            │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       Frontend Layer                          │
+│   Jinja2 Templates │ Vanilla CSS/JS │ SVG Animations         │
+└─────────────────────────────┬────────────────────────────────┘
+                              │ HTTP / REST / Multipart
+┌─────────────────────────────▼────────────────────────────────┐
+│                    Application Layer (FastAPI)                 │
+│   auth │ users │ leaderboard │ farmservice │ aihelp │ challenge│
+└──────┬──────────┬──────────────────────────┬─────────────────┘
+       │          │                          │
+┌──────▼──┐  ┌───▼──────────────┐  ┌────────▼────────────────┐
+│ SQLite/ │  │   External APIs   │  │   AI/ML Services        │
+│PostgreSQL│  │  PlantNet (STT)  │  │  Sarvam LLM + STT/TTS  │
+│  Neo4j  │  │  Qdrant (vector) │  │  mem0 memory            │
+└─────────┘  └──────────────────┘  └─────────────────────────┘
 ```
 
 ### Technology Stack
 
 **Backend:**
-- **FastAPI** - Modern async web framework
-- **SQLAlchemy 2.0** - Async ORM with declarative models
-- **Pydantic** - Data validation and settings management
-- **JWT (python-jose)** - Token-based authentication
-- **Passlib (bcrypt)** - Password hashing
-- **Uvicorn** - ASGI server
+- **FastAPI** — Async web framework
+- **SQLAlchemy 2.0** — Async ORM with `Mapped[]` declarative models
+- **Pydantic v2** — Data validation and settings
+- **JWT (python-jose)** — Token-based authentication
+- **Passlib (bcrypt)** — Password hashing
+- **httpx** — Async HTTP client for external APIs
 
-**Database:**
-- **SQLite** (Development) - File-based relational database
-- **PostgreSQL** (Production-ready) - Scalable relational database
-- **Neo4j Aura** - Graph database for relationship management
+**AI / ML:**
+- **Sarvam AI** (`sarvam-m`) — Agriculture-restricted LLM
+- **Sarvam STT** (`saarika:v2`) — Speech-to-text for voice chat
+- **Sarvam TTS** (`bulbul:v1`) — Text-to-speech voice responses
+- **mem0** — Per-user persistent memory across conversations
+- **PlantNet API** — Plant species identification from photos
+
+**Databases:**
+- **SQLite** (dev) / **PostgreSQL** (prod) — Relational data
+- **Neo4j Aura** — Graph database for farm relationships
+- **Qdrant** — Vector database (optional, read-only knowledge retrieval)
 
 **Frontend:**
-- **Jinja2** - Server-side templating engine
-- **Tailwind CSS** - Utility-first CSS framework
-- **JavaScript (ES6+)** - Client-side interactivity
-- **Fetch API** - RESTful API communication
+- **Jinja2** — Server-side templating
+- **Vanilla CSS** — Fredoka One + Nunito fonts, retro green palette
+- **JavaScript (ES6+)** — Fetch API, MediaRecorder (voice), SVG animations
 
 ---
 
-## 📁 Project Structure (Detailed)
+## 📁 Project Structure
 
 ```
 baseprogram/
-├── main.py                    # FastAPI app initialization & routing
-├── database.py                # Database engine, session, ORM base
-├── auth.py                    # JWT creation, verification, dependencies
-├── config.py                  # Pydantic settings & environment config
+├── main.py                     # FastAPI app, lifespan, router registration
+├── database.py                 # Async engine, AsyncSession, Base
+├── auth.py                     # JWT creation, verification, get_current_user
+├── config.py                   # Pydantic Settings (reads from .env)
 │
-├── models/                    # SQLAlchemy ORM models
-│   ├── __init__.py           # Model exports
-│   ├── user.py               # User table definition
-│   └── farm.py               # Farm table with geospatial data
+├── models/
+│   ├── user.py                 # User ORM model
+│   ├── farm.py                 # Farm with polygon + carbon credits
+│   ├── conversation.py         # AI chat: Conversation + Message
+│   └── plant_discovery.py      # PlantDiscovery, DailyStreak, UserTree
 │
-├── schemas/                   # Pydantic validation schemas
-│   ├── __init__.py           # Schema exports
-│   ├── auth.py               # Token schemas
-│   ├── user.py               # UserCreate, UserUpdate, UserResponse
-│   └── farm.py               # FarmCreate, FarmUpdate, FarmResponse
+├── schemas/
+│   ├── user.py                 # UserCreate, UserUpdate, UserResponse
+│   ├── farm.py                 # FarmCreate, FarmUpdate, FarmResponse
+│   ├── aihelp.py               # ChatRequest, ChatResponse, ConversationOut
+│   └── plant.py                # PlantIdentifyResponse, BadgeOut, StreakResponse
 │
-├── routers/                   # API endpoint modules
-│   ├── __init__.py           # Router exports
-│   ├── auth.py               # /api/auth/* - register, login, logout
-│   ├── users.py              # /api/users/* - user CRUD
-│   ├── leaderboard.py        # /api/leaderboard - rankings
-│   └── farmservice.py        # /api/farmservice/* - farm CRUD
+├── routers/
+│   ├── auth.py                 # /api/auth/* — register, login
+│   ├── users.py                # /api/users/* — profile CRUD
+│   ├── leaderboard.py          # /api/leaderboard
+│   ├── farmservice.py          # /farmservice + /api/farmservice/*
+│   ├── aihelp.py               # /aihelp — AI chat + voice endpoints
+│   └── challenge.py            # /challenge — plant discovery + streaks
 │
-├── utils/                     # Utility modules
-│   ├── __init__.py           # Utility exports
-│   ├── carbon_calculator.py  # Carbon credit calculations
-│   └── geospatial.py         # Area calculation, polygon center
+├── clients/
+│   └── sarvam_client.py        # Sarvam LLM, STT (saarika:v2), TTS (bulbul:v1)
 │
-├── templates/                 # Jinja2 HTML templates
-│   ├── base.html             # Base template with navbar
-│   ├── home.html             # Landing page
-│   ├── login.html            # Login form
-│   ├── register.html         # Registration form
-│   ├── dashboard.html        # User dashboard
-│   ├── profile.html          # Public profile view
-│   ├── profile_edit.html     # Profile editing
-│   ├── leaderboard.html      # Rankings display
-│   ├── farmservice.html      # Farm management dashboard
-│   └── error.html            # Error page
+├── services/
+│   ├── ai_service.py           # AI pipeline: retrieval → memory → LLM → store
+│   ├── memory_service.py       # mem0 wrapper (graceful fallback)
+│   ├── retrieval_service.py    # Qdrant vector retrieval (QDRANT_ENABLED flag)
+│   ├── plant_ai_service.py     # Plant fun facts + plant-specific chat
+│   ├── plantnet_service.py     # PlantNet API + emoji/badge color assignment
+│   └── streak_service.py       # Async daily streak + tree growth logic
 │
-├── static/                    # Static assets
-│   ├── css/                  # Custom stylesheets
-│   └── js/                   # JavaScript modules
-│       ├── auth.js           # Token management
-│       ├── utils.js          # Helper functions
-│       └── farmservice.js    # Farm CRUD logic
+├── utils/
+│   ├── carbon_calculator.py    # Credit formula by soil type + verification
+│   └── geospatial.py           # Haversine area, polygon centroid
 │
-├── media/                     # User uploads
-│   └── profile_pics/         # Profile pictures
+├── templates/
+│   ├── base.html               # Navbar, fonts, common structure
+│   ├── home.html               # Landing page
+│   ├── dashboard.html          # User dashboard + 🔥 streak widget
+│   ├── farmservice.html        # Farm management
+│   ├── aihelp.html             # AI chat + voice orb panel
+│   └── challenge.html          # Plant discovery, tree, badges
 │
-├── .env                       # Environment variables (SECRET_KEY, Neo4j)
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+├── static/
+│   ├── css/
+│   │   ├── aihelp.css          # 3-panel chat layout
+│   │   └── challenge.css       # Tree section, hex badges, modal steps
+│   └── js/
+│       ├── auth.js             # Token management, requireAuth
+│       ├── farmservice.js      # Farm CRUD
+│       ├── aihelp.js           # Chat + voice: MediaRecorder, orb states
+│       └── challenge.js        # Tree SVG, streak strip, badge grid, upload modal
+│
+├── .env                        # All secrets and API keys (never commit)
+└── pyproject.toml              # uv dependencies
 ```
 
 ---
 
-## 🗄️ Database Architecture
+## 🗄️ Database Schema
 
-### Database Schema (SQLite/PostgreSQL)
+### Tables
 
-#### **Users Table**
+| Table | Purpose |
+|---|---|
+| `users` | Farmer profiles with points |
+| `farms` | Farm boundaries, soil, carbon credits |
+| `conversations` | AI chat session containers |
+| `messages` | Individual chat messages |
+| `plant_discoveries` | Plant badge collection (text only) |
+| `daily_streaks` | Per-day verification records |
+| `user_trees` | Virtual growing tree state |
 
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(100) NOT NULL,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(120) UNIQUE NOT NULL,
-    phone VARCHAR(15) NOT NULL,
-    address TEXT,
-    photo VARCHAR(255),
-    password_hash VARCHAR(200) NOT NULL,
-    points INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_user_email_lower ON users (email);
-CREATE INDEX idx_user_username_lower ON users (username);
-```
-
-**Key Features:**
-- Auto-incrementing primary key
-- Unique constraints on `username` and `email`
-- Case-insensitive indexes for login
-- Password stored as bcrypt hash (never plain text)
-- Points system for gamification
-- One-to-many relationship with farms
-
-#### **Farms Table**
-
-```sql
-CREATE TABLE farms (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    farmer_id INTEGER NOT NULL,
-    farm_name VARCHAR(100),
-    phone VARCHAR(15) NOT NULL,
-    latitude FLOAT NOT NULL,
-    longitude FLOAT NOT NULL,
-    area_hectares FLOAT NOT NULL,
-    soil_type VARCHAR(20) NOT NULL,
-    district VARCHAR(100) NOT NULL,
-    state VARCHAR(100) NOT NULL,
-    annual_credits FLOAT DEFAULT 0.0,
-    annual_value_inr FLOAT DEFAULT 0.0,
-    polygon_coordinates JSON NOT NULL,
-    is_verified BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_farmer_verified ON farms (farmer_id, is_verified);
-CREATE INDEX idx_location ON farms (latitude, longitude);
-CREATE INDEX idx_district_state ON farms (district, state);
-```
-
-**Key Features:**
-- Foreign key to `users` table with cascade delete
-- Geospatial data: `latitude`, `longitude`, `polygon_coordinates` (JSON array)
-- Calculated fields: `annual_credits`, `annual_value_inr` (denormalized for performance)
-- Verification workflow support (`is_verified`)
-- Composite indexes for common queries
-- Auto-updating `updated_at` timestamp
-
-### Database Models (SQLAlchemy)
-
-**User Model** (`models/user.py`):
-```python
-class User(Base):
-    __tablename__ = "users"
-    
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(200))
-    # ... other fields
-    
-    # Relationship
-    farms: Mapped[list["Farm"]] = relationship("Farm", back_populates="owner", cascade="all, delete-orphan")
-```
-
-**Farm Model** (`models/farm.py`):
-```python
-class Farm(Base):
-    __tablename__ = "farms"
-    
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    farmer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    polygon_coordinates: Mapped[List] = mapped_column(JSON)
-    # ... other fields
-    
-    # Relationship
-    owner: Mapped["User"] = relationship("User", back_populates="farms")
-```
-
-### Neo4j Graph Database
-
-**Connection Configuration** (`config.py`):
-```python
-neo4j_uri: str          # Neo4j Aura instance URI
-neo4j_username: str     # Database username
-neo4j_password: str     # Database password
-neo4j_database: str     # Database name
-aura_instanceid: str    # Aura instance ID
-```
-
-**Use Cases:**
-- User-farm relationships
-- Farm proximity graphs
-- Social network features (future)
-- Recommendation systems (future)
-
----
-
-## 🔐 Authentication System
-
-### JWT Token Flow
+### Key Relationships
 
 ```
-1. User Registration/Login
-   ↓
-2. Server generates JWT token
-   - Payload: {"sub": "user_id", "exp": timestamp}
-   - Signed with SECRET_KEY using HS256
-   ↓
-3. Client stores token (localStorage)
-   ↓
-4. Client includes token in Authorization header
-   - Header: "Authorization: Bearer <token>"
-   ↓
-5. Server validates token via get_current_user dependency
-   - Verifies signature
-   - Checks expiration
-   - Fetches user from database
-   ↓
-6. User object injected into protected routes
+User ──< Farm
+User ──< Conversation ──< Message
+User ──< PlantDiscovery
+User ──< DailyStreak
+User ──1 UserTree
 ```
 
-### Implementation Details
+### Carbon Credit Formula
 
-**Password Hashing** (`auth.py`):
-```python
-# Hash password on registration
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-password_hash = pwd_context.hash(plain_password)
+```
+credits = area_hectares × soil_multiplier × 12.5 base_rate
 
-# Verify password on login
-is_valid = pwd_context.verify(plain_password, hashed_password)
+soil_multiplier: Loamy=1.2 | Clay=1.0 | Sandy=0.8 | Mixed=1.0
+verified bonus:  +100% credits when is_verified=True
+value_inr = credits × ₹500
 ```
 
-**Token Creation** (`auth.py`):
-```python
-def create_access_token(data: dict, expires_delta: timedelta):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
-    to_encode.update({"exp": expire})
-    jwt_token = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
-    return jwt_token
+### Plant Tree Levels
+
 ```
-
-**Token Validation** (`auth.py`):
-```python
-async def get_current_user(token: str, db: AsyncSession):
-    payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-    user_id = payload.get("sub")
-    user = await db.execute(select(User).where(User.id == int(user_id)))
-    return user.scalar_one_or_none()
-```
-
-### Protected Routes
-
-All routes with `current_user: User = Depends(get_current_user)` require authentication:
-- `GET /api/users/me` - Get current user
-- `PATCH /api/users/me` - Update profile
-- `DELETE /api/users/me` - Delete account
-- `GET /api/farmservice/farms` - List farms
-- `POST /api/farmservice/farms` - Create farm
-- And more...
-
----
-
-## 🌐 API Architecture
-
-### RESTful API Design
-
-The API follows REST conventions with clear resource-based URLs and HTTP methods:
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| **Authentication** |
-| POST | `/api/auth/register` | Create new user | ❌ |
-| POST | `/api/auth/token` | Login (get JWT) | ❌ |
-| POST | `/api/auth/logout` | Logout | ❌ |
-| **Users** |
-| GET | `/api/users/me` | Get current user | ✅ |
-| PATCH | `/api/users/me` | Update current user | ✅ |
-| DELETE | `/api/users/me` | Delete account | ✅ |
-| GET | `/api/users/{user_id}` | Get public profile | ❌ |
-| **Farms** |
-| GET | `/api/farmservice/farms` | List user's farms | ✅ |
-| POST | `/api/farmservice/farms` | Create new farm | ✅ |
-| GET | `/api/farmservice/farms/{farm_id}` | Get farm details | ✅ |
-| PUT | `/api/farmservice/farms/{farm_id}` | Update farm | ✅ |
-| DELETE | `/api/farmservice/farms/{farm_id}` | Delete farm | ✅ |
-| GET | `/api/farmservice/statistics` | Get statistics | ✅ |
-| **Leaderboard** |
-| GET | `/api/leaderboard` | Get user rankings | ❌ |
-
-### API Request/Response Flow
-
-**Example: Create Farm**
-
-```http
-POST /api/farmservice/farms
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-
-{
-  "farm_name": "Green Valley Farm",
-  "phone": "9876543210",
-  "district": "Pune",
-  "state": "Maharashtra",
-  "soil_type": "Loamy",
-  "polygon_coordinates": [
-    [18.5204, 73.8567],
-    [18.5214, 73.8567],
-    [18.5214, 73.8577],
-    [18.5204, 73.8577]
-  ]
-}
-```
-
-**Backend Processing:**
-1. **Authentication**: `get_current_user` dependency validates JWT token
-2. **Validation**: Pydantic `FarmCreate` schema validates input
-3. **Geospatial Calculation**: 
-   - `calculate_area_from_polygon()` computes area in hectares
-   - `get_polygon_center()` finds center coordinates
-4. **Carbon Credit Calculation**:
-   - `calculate_annual_credits(area, soil_type, is_verified=False)`
-   - `calculate_annual_value(credits)` converts to INR
-5. **Database Storage**: SQLAlchemy creates Farm record
-6. **Response**: Returns serialized `FarmResponse`
-
-```json
-{
-  "id": 1,
-  "farmer_id": 123,
-  "farm_name": "Green Valley Farm",
-  "phone": "9876543210",
-  "latitude": 18.5209,
-  "longitude": 73.8572,
-  "area_hectares": 0.012,
-  "soil_type": "Loamy",
-  "district": "Pune",
-  "state": "Maharashtra",
-  "annual_credits": 0.09,
-  "annual_value_inr": 45.0,
-  "polygon_coordinates": [...],
-  "is_verified": false,
-  "created_at": "2026-02-12T13:30:00",
-  "updated_at": "2026-02-12T13:30:00",
-  "display_name": "Green Valley Farm",
-  "verification_status": "Pending Verification"
-}
-```
-
-### Validation & Error Handling
-
-**Pydantic Validation** (`schemas/farm.py`):
-```python
-class FarmCreate(BaseModel):
-    soil_type: Literal["Loamy", "Clay", "Sandy", "Mixed"]  # Enum constraint
-    polygon_coordinates: List[List[float]]  # Type safety
-    
-    @field_validator("polygon_coordinates")
-    def validate_polygon(cls, v):
-        if len(v) < 3:
-            raise ValueError("Polygon must have at least 3 points")
-        for lat, lon in v:
-            if not (-90 <= lat <= 90):
-                raise ValueError(f"Invalid latitude: {lat}")
-        return v
-```
-
-**Error Responses**:
-- `400 Bad Request` - Invalid input (custom validation)
-- `401 Unauthorized` - Missing/invalid token
-- `403 Forbidden` - Valid token but insufficient permissions
-- `404 Not Found` - Resource doesn't exist
-- `422 Unprocessable Entity` - Pydantic validation failure
-- `500 Internal Server Error` - Unexpected server error
-
----
-
-## ⚙️ Business Logic & Utilities
-
-### Carbon Credit Calculator
-
-**Formula** (`utils/carbon_calculator.py`):
-```python
-annual_credits = area_hectares × soil_multiplier × base_rate × verification_multiplier
-
-Where:
-- base_rate = 12.5 credits/hectare/year
-- soil_multiplier = {Loamy: 1.2, Clay: 1.0, Sandy: 0.8, Mixed: 1.0}
-- verification_multiplier = {verified: 1.0, unverified: 0.5}
-
-annual_value_inr = annual_credits × market_rate (₹500/credit)
-```
-
-**Example Calculation**:
-```python
-# Farm: 3.2 hectares, Loamy soil, Verified
-area = 3.2
-soil_type = "Loamy"  # multiplier = 1.2
-is_verified = True   # multiplier = 1.0
-
-credits = 3.2 × 1.2 × 12.5 × 1.0 = 48.0 credits/year
-value = 48.0 × 500 = ₹24,000/year
-```
-
-### Geospatial Utilities
-
-**Area Calculation** (`utils/geospatial.py`):
-```python
-def calculate_area_from_polygon(coordinates: List[List[float]]) -> float:
-    """
-    Calculate area using Haversine formula for geographic coordinates.
-    Returns area in hectares.
-    """
-    # Uses spherical geometry to account for Earth's curvature
-    # Converts polygon to projected coordinates
-    # Calculates area using shoelace formula
-    # Returns result in hectares
-```
-
-**Center Point** (`utils/geospatial.py`):
-```python
-def get_polygon_center(coordinates: List[List[float]]) -> tuple[float, float]:
-    """
-    Calculate centroid (geometric center) of polygon.
-    Returns (latitude, longitude).
-    """
-    # Averages all coordinate points
-    # Returns center for map display
+Leaves:  0-4  → Level 1
+         5-9  → Level 2
+         10-14 → Level 3
+         ...  (every 5 plants = +1 level, max Level 10)
 ```
 
 ---
 
-## 🎨 Frontend Integration
+## 🔐 Authentication
 
-### Server-Side Rendering (Jinja2)
+JWT Bearer token flow:
+1. `POST /api/auth/register` → create account
+2. `POST /api/auth/token` → returns `access_token`
+3. Store in `localStorage`, include as `Authorization: Bearer <token>` header
+4. All protected routes use `Depends(get_current_user)` FastAPI dependency
 
-**Base Template** (`templates/base.html`):
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }} - Farm Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-    <!-- Navigation bar with auth state -->
-    <nav id="navbar">...</nav>
-    
-    <!-- Content block (overridden by child templates) -->
-    {% block content %}{% endblock %}
-    
-    <!-- JavaScript modules -->
-    <script src="/static/js/auth.js"></script>
-    <script src="/static/js/utils.js"></script>
-</body>
-</html>
+HTML page routes use client-side JS auth guard (redirect to `/login` if no token).
+
+---
+
+## 🤖 AI Assistant Architecture
+
+### Text Pipeline
+```
+User message
+   → Qdrant retrieval (if QDRANT_ENABLED=true)
+   → mem0 memory recall
+   → User profile context from DB (name, farms, location)
+   → Sarvam LLM (sarvam-m, agriculture-restricted prompt)
+   → Store in DB + mem0
+   → Response
 ```
 
-**Child Template** (`templates/farmservice.html`):
-```html
-{% extends "base.html" %}
-
-{% block content %}
-<div id="farm-dashboard">
-    <h1>My Farms</h1>
-    <div id="statistics"></div>
-    <div id="farm-list"></div>
-</div>
-
-<script src="/static/js/farmservice.js"></script>
-<script>
-    // Fetch farms on page load
-    document.addEventListener('DOMContentLoaded', async () => {
-        await loadFarms();
-    });
-</script>
-{% endblock %}
+### Voice Pipeline
+```
+Mic audio (WebM/WAV)
+   → POST /aihelp/voice/chat (multipart)
+   → Sarvam STT saarika:v2 → transcript
+   → Text pipeline above
+   → Sarvam TTS bulbul:v1 → WAV bytes
+   → Browser plays audio
 ```
 
-### Client-Side JavaScript
+### Agriculture Restriction
 
-**Authentication Module** (`static/js/auth.js`):
-```javascript
-// Store/retrieve JWT token
-function getToken() {
-    return localStorage.getItem('access_token');
-}
+The assistant **only answers questions about**: farming, crops, carbon credits, soil, irrigation, government schemes, pest control, livestock. Off-topic questions (coding, math, etc.) receive a polite redirect.
 
-function setToken(token) {
-    localStorage.setItem('access_token', token);
-}
+---
 
-// Make authenticated API request
-async function apiRequest(url, options = {}) {
-    const token = getToken();
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-    const response = await fetch(url, options);
-    if (response.status === 401) {
-        // Token expired, redirect to login
-        window.location.href = '/login';
-    }
-    return response;
-}
+## 🌿 Plant Discovery System
+
+### Identification Pipeline
+```
+Upload photo
+   → PlantNet API /v2/identify/all (≥30% confidence threshold)
+   → Parse: common name, scientific name, family, confidence
+   → Sarvam fun fact generation (2 sentences)
+   → Check first-global-discovery (bonus 40pts vs 10pts)
+   → Save PlantDiscovery record (TEXT ONLY — image not stored)
+   → Upsert DailyStreak + UserTree
+   → Return badge response
 ```
 
-**Farm Service Module** (`static/js/farmservice.js`):
-```javascript
-// Fetch all farms with statistics
-async function loadFarms() {
-    const response = await apiRequest('/api/farmservice/farms');
-    const data = await response.json();
-    
-    displayStatistics(data.summary);
-    displayFarms(data.farms);
-}
-
-// Create new farm
-async function createFarm(farmData) {
-    const response = await apiRequest('/api/farmservice/farms', {
-        method: 'POST',
-        body: JSON.stringify(farmData)
-    });
-    
-    if (response.ok) {
-        const farm = await response.json();
-        showNotification('Farm created successfully!');
-        await loadFarms(); // Refresh list
-    } else {
-        const error = await response.json();
-        showError(error.detail);
-    }
-}
-
-// Delete farm
-async function deleteFarm(farmId) {
-    const response = await apiRequest(`/api/farmservice/farms/${farmId}`, {
-        method: 'DELETE'
-    });
-    
-    if (response.ok) {
-        showNotification('Farm deleted successfully!');
-        await loadFarms(); // Refresh list
-    }
-}
-```
-
-### Frontend-Backend Data Flow
-
-```
-1. User interactions (clicks, form submissions)
-   ↓
-2. JavaScript event handlers
-   ↓
-3. API requests with JWT token
-   ↓
-4. FastAPI routes validate & process
-   ↓
-5. Database operations (SQLAlchemy)
-   ↓
-6. Pydantic serialization
-   ↓
-7. JSON response to frontend
-   ↓
-8. JavaScript updates DOM dynamically
-```
-
-**Example Flow: Load Dashboard**
-```
-User opens /farmservice
-  ↓
-FastAPI serves farmservice.html (Jinja2)
-  ↓
-Browser loads farmservice.js
-  ↓
-JavaScript calls GET /api/farmservice/farms
-  ↓
-FastAPI validates JWT token
-  ↓
-SQLAlchemy queries farms table
-  ↓
-Calculates summary statistics
-  ↓
-Returns FarmListResponse JSON
-  ↓
-JavaScript renders farms in DOM
-```
+### Gamification
+- 🏅 **First global discovery** — 40 points + Pioneer banner
+- 🌱 **Normal discovery** — 10 points + badge
+- 🔄 **Re-discovery** — 5 points, updates fun fact
+- 🌲 **Growing tree** — gains a leaf per plant, visible SVG animation
+- 🔥 **Daily streak** — 7-day strip on dashboard and challenge page
 
 ---
 
 ## 🚀 Running the Application
 
 ### Prerequisites
-
 - Python 3.11+
-- pip or uv package manager
-- Neo4j Aura account (for graph features)
+- `uv` package manager
 
 ### Installation
 
-1. **Clone Repository**
-   ```bash
-   cd baseprogram
-   ```
+```bash
+# Install dependencies
+uv sync
 
-2. **Create Virtual Environment**
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   source .venv/bin/activate  # Linux/Mac
-   ```
+# Configure environment
+cp .env.example .env   # then fill in your keys
 
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Run dev server
+uv run fastapi dev main.py
+```
 
-4. **Configure Environment Variables**
-   
-   Create `.env` file:
-   ```env
-   SECRET_KEY=your-secret-key-here-generate-with-secrets.token_hex(32)
-   ALGORITHM=HS256
-   ACCESS_TOKEN_EXPIRE_MINUTES=60
-   
-   # Neo4j Configuration
-   NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
-   NEO4J_USERNAME=neo4j
-   NEO4J_PASSWORD=your-password
-   NEO4J_DATABASE=neo4j
-   AURA_INSTANCEID=your-instance-id
-   AURA_INSTANCENAME=your-instance-name
-   ```
+### Environment Variables
 
-5. **Initialize Database**
-   ```bash
-   python main.py  # Creates SQLite database on first run
-   ```
+| Variable | Required | Description |
+|---|---|---|
+| `SECRET_KEY` | ✅ | JWT signing key (generate with `secrets.token_hex(32)`) |
+| `SARVAM_API_KEY` | ✅ | Sarvam AI API key |
+| `PLANTNET_API_KEY` | ✅ | PlantNet identification API key |
+| `MEM0_API_KEY` | ⚪ | mem0 cloud key (empty = local mode) |
+| `QDRANT_ENABLED` | ⚪ | `true` to enable vector retrieval (default: `false`) |
+| `NEO4J_URI` | ⚪ | Neo4j Aura URI for graph features |
+| `GEMINI_API_KEY` | ⚪ | Google Gemini (reserved for future) |
 
-6. **Run Application**
-   ```bash
-   # Development mode
-   uvicorn main:app --reload --host 127.0.0.1 --port 8000
-   
-   # Or using main.py
-   python main.py
-   ```
+### Access Points
 
-7. **Access Application**
-   - Web Interface: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - Alternative Docs: http://localhost:8000/redoc
+| URL | Description |
+|---|---|
+| http://localhost:8000 | Landing page |
+| http://localhost:8000/farmservice | Farm management |
+| http://localhost:8000/aihelp | AI chat + voice assistant |
+| http://localhost:8000/challenge | Plant discovery + streaks |
+| http://localhost:8000/dashboard | User dashboard |
+| http://localhost:8000/docs | Swagger UI (auto-generated) |
 
 ---
 
-## 🧪 API Testing
+## 🧪 Quick API Test
 
-### Interactive Documentation
-
-FastAPI auto-generates interactive API documentation:
-
-1. **Swagger UI** (`/docs`):
-   - Test endpoints directly in browser
-   - View request/response schemas
-   - Authenticate with JWT token
-
-2. **ReDoc** (`/redoc`):
-   - Beautiful, readable documentation
-   - Search functionality
-   - Code examples
-
-### Manual Testing with cURL
-
-**1. Register User**
 ```bash
-curl -X POST "http://localhost:8000/api/auth/register" \
+# Register
+curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Farmer",
-    "username": "johnfarmer",
-    "email": "john@farm.com",
-    "phone": "9876543210",
-    "password": "SecurePass123"
-  }'
-```
+  -d '{"name":"Ravi","username":"ravi","email":"ravi@farm.com","phone":"9876543210","password":"Pass123"}'
 
-**2. Login**
-```bash
-curl -X POST "http://localhost:8000/api/auth/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=john@farm.com&password=SecurePass123"
-```
+# Login
+curl -X POST http://localhost:8000/api/auth/token \
+  -d "username=ravi@farm.com&password=Pass123"
 
-**3. Create Farm**
-```bash
-curl -X POST "http://localhost:8000/api/farmservice/farms" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+# Chat with AI assistant
+curl -X POST http://localhost:8000/aihelp/chat \
+  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "farm_name": "Sunrise Acres",
-    "phone": "9876543210",
-    "district": "Pune",
-    "state": "Maharashtra",
-    "soil_type": "Loamy",
-    "polygon_coordinates": [
-      [18.5204, 73.8567],
-      [18.5214, 73.8567],
-      [18.5214, 73.8577],
-      [18.5204, 73.8577]
-    ]
-  }'
-```
+  -d '{"message": "What crops grow well in loamy soil?"}'
 
-**4. Get Farms**
-```bash
-curl -X GET "http://localhost:8000/api/farmservice/farms" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+# Identify a plant
+curl -X POST http://localhost:8000/challenge/identify \
+  -H "Authorization: Bearer TOKEN" \
+  -F "image=@/path/to/plant.jpg"
 ```
 
 ---
 
-## 📊 Database Migrations
+## 📦 Key Dependencies
 
-### SQLite to PostgreSQL Migration
-
-For production deployment, migrate from SQLite to PostgreSQL:
-
-1. **Update `database.py`**:
-   ```python
-   SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://user:password@localhost/dbname"
-   ```
-
-2. **Install PostgreSQL Dependencies**:
-   ```bash
-   pip install asyncpg
-   ```
-
-3. **Run Migration Script**:
-   ```bash
-   python migrate_pure_schema.py
-   ```
-
-### Schema Updates
-
-To add new fields or tables:
-
-1. **Update Models** (`models/user.py` or `models/farm.py`)
-2. **Drop Existing Tables** (development only):
-   ```python
-   await Base.metadata.drop_all(engine)
-   ```
-3. **Recreate Tables**:
-   ```python
-   await Base.metadata.create_all(engine)
-   ```
-
-For production, use Alembic migrations.
+```toml
+fastapi, uvicorn[standard]     # Web framework + ASGI server
+sqlalchemy[asyncio]            # Async ORM
+aiosqlite                      # Async SQLite driver
+pydantic[email]                # Data validation
+python-jose[cryptography]      # JWT
+passlib[bcrypt]                # Password hashing
+httpx                          # Async HTTP (Sarvam, PlantNet)
+mem0ai                         # Persistent conversation memory
+qdrant-client                  # Vector search (optional)
+python-multipart               # File upload support
+jinja2                         # HTML templating
+```
 
 ---
 
-## 🔒 Security Best Practices
+## 📝 Commit History Note
 
-### Implemented Security Measures
-
-1. **Password Security**
-   - Bcrypt hashing with salt
-   - Never store plain text passwords
-   - Minimum 8 character length enforced
-
-2. **JWT Token Security**
-   - Secret key stored in environment variables
-   - Expiration time (60 minutes default)
-   - Signed with HS256 algorithm
-
-3. **Input Validation**
-   - Pydantic schemas validate all inputs
-   - SQL injection prevention (SQLAlchemy ORM)
-   - XSS protection (Jinja2 auto-escaping)
-
-4. **Authorization**
-   - Route-level authentication checks
-   - Ownership verification (users can only modify their farms)
-   - Public/private data separation
-
-5. **Database Security**
-   - Foreign key constraints
-   - Cascade deletes
-   - Prepared statements (ORM)
-
-### Production Recommendations
-
-1. **Use HTTPS** - Encrypt all traffic
-2. **Rotate Secret Keys** - Periodic key rotation
-3. **Rate Limiting** - Prevent brute force attacks
-4. **CORS Configuration** - Restrict allowed origins
-5. **Database Backups** - Regular automated backups
-6. **Logging & Monitoring** - Track security events
-
----
-
-## 📈 Performance Optimization
-
-### Backend Optimizations
-
-1. **Async/Await** - Non-blocking I/O operations
-2. **Connection Pooling** - SQLAlchemy connection pool
-3. **Indexing** - Database indexes on frequently queried columns
-4. **Denormalization** - Calculated fields stored in database
-5. **Lazy Loading** - Minimal data fetched by default
-
-### Frontend Optimizations
-
-1. **Static File Caching** - Browser caching for CSS/JS
-2. **CDN Hosting** - Serve static assets from CDN
-3. **Minimal API Calls** - Batch requests where possible
-4. **DOM Manipulation** - Efficient JavaScript updates
-
-### Scaling Strategies
-
-1. **Horizontal Scaling** - Multiple Uvicorn workers
-   ```bash
-   gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
-   ```
-
-2. **Caching** - Redis for session storage, API responses
-3. **Load Balancing** - Nginx reverse proxy
-4. **Database Optimization** - PostgreSQL with read replicas
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. Database Locked Error (SQLite)**
-- **Cause**: Concurrent write operations
-- **Solution**: Use PostgreSQL for production
-
-**2. Token Expired / 401 Unauthorized**
-- **Cause**: JWT token expired
-- **Solution**: Re-login to get new token
-
-**3. CORS Errors**
-- **Cause**: Frontend on different origin
-- **Solution**: Configure CORS middleware in `main.py`
-
-**4. Module Not Found**
-- **Cause**: Dependencies not installed
-- **Solution**: `pip install -r requirements.txt`
-
-**5. Port Already in Use**
-- **Cause**: Another process using port 8000
-- **Solution**: Change port or kill existing process
-  ```bash
-  # Windows
-  netstat -ano | findstr :8000
-  taskkill /PID <PID> /F
-  
-  # Linux/Mac
-  lsof -ti:8000 | xargs kill
-  ```
-
----
-
-## 📚 Additional Resources
-
-- **API Documentation**: [`API_DOCS.md`](./API_DOCS.md)
-- **Learning Guide**: [`LEARNING.md`](./LEARNING.md)
-- **System Design**: [`CARBON_CREDIT_SYSTEM_DESIGN.md`](./CARBON_CREDIT_SYSTEM_DESIGN.md)
-- **FastAPI Docs**: https://fastapi.tiangolo.com
-- **SQLAlchemy Docs**: https://docs.sqlalchemy.org
-- **Pydantic Docs**: https://docs.pydantic.dev
-
----
-
-## 📞 Support & Contributing
-
-For questions, issues, or contributions:
-1. Review inline code comments (comprehensive documentation)
-2. Check existing documentation files
-3. Test endpoints using `/docs` interface
-4. Consult official framework documentation
-
----
-
-**Built with ❤️ for modern carbon credit management**
+All new files added in this session:
+- `models/conversation.py`, `models/plant_discovery.py`
+- `schemas/aihelp.py`, `schemas/plant.py`
+- `clients/sarvam_client.py`
+- `services/` — `ai_service`, `memory_service`, `retrieval_service`, `plant_ai_service`, `plantnet_service`, `streak_service`
+- `routers/aihelp.py`, `routers/challenge.py`
+- `templates/aihelp.html`, `templates/challenge.html`
+- `static/css/aihelp.css`, `static/css/challenge.css`
+- `static/js/aihelp.js`, `static/js/challenge.js`

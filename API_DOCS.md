@@ -1,437 +1,422 @@
-# API Documentation
+# API Documentation — Krushi Yantra
 
-Complete reference for all API endpoints in the FastAPI User Management system.
+Complete endpoint reference for the Krushi Yantra FastAPI application.
 
 ## Base URL
-
 ```
 http://localhost:8000
 ```
 
 ## Authentication
-
-Most endpoints require authentication via JWT token. Include the token in the Authorization header:
-
+All protected endpoints require a JWT Bearer token:
 ```
-Authorization: Bearer <your_token_here>
+Authorization: Bearer <access_token>
 ```
 
 ---
 
 ## Authentication Endpoints
 
-### Register User
+### `POST /api/auth/register`
+Register a new user.
 
-Create a new user account.
-
-**Endpoint:** `POST /api/auth/register`
-
-**Authentication:** Not required
-
-**Request Body:**
+**Body:**
 ```json
 {
-  "name": "John Doe",
-  "username": "johndoe",
-  "email": "john@example.com",
-  "phone": "+1234567890",
-  "address": "123 Main St, City, Country",
+  "name": "Ravi Kumar",
+  "username": "ravikumar",
+  "email": "ravi@farm.com",
+  "phone": "9876543210",
+  "address": "Pune, Maharashtra",
   "password": "SecurePass123"
 }
 ```
-
-**Response:** `201 Created`
+**Response `201`:**
 ```json
-{
-  "id": 1,
-  "name": "John Doe",
-  "username": "johndoe",
-  "email": "john@example.com",
-  "phone": "+1234567890",
-  "address": "123 Main St, City, Country",
-  "photo": null,
-  "image_path": "/static/profile_pics/default.jpg",
-  "points": 0
-}
+{ "id": 1, "name": "Ravi Kumar", "username": "ravikumar", "email": "ravi@farm.com",
+  "phone": "9876543210", "points": 0, "image_path": "/static/profile_pics/default.jpg" }
 ```
-
-**Errors:**
-- `400 Bad Request` - Username or email already exists
-- `422 Unprocessable Entity` - Invalid input data
+**Errors:** `400` username/email exists · `422` invalid input
 
 ---
 
-### Login
+### `POST /api/auth/token`
+Login and receive JWT token.
 
-Authenticate and receive a JWT token.
-
-**Endpoint:** `POST /api/auth/token`
-
-**Authentication:** Not required
-
-**Request Body:** (application/x-www-form-urlencoded)
+**Body** (`application/x-www-form-urlencoded`):
 ```
-username=john@example.com&password=SecurePass123
+username=ravi@farm.com&password=SecurePass123
 ```
-
-**Response:** `200 OK`
+**Response `200`:**
 ```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
-}
+{ "access_token": "eyJhbGci...", "token_type": "bearer" }
 ```
-
-**Errors:**
-- `401 Unauthorized` - Invalid credentials
-
-**Note:** The `username` field should contain the email address.
+**Errors:** `401` invalid credentials
 
 ---
 
-### Logout
-
-Logout the current user (client-side operation).
-
-**Endpoint:** `POST /api/auth/logout`
-
-**Authentication:** Not required
-
-**Response:** `204 No Content`
-
-**Note:** This endpoint exists for consistency. Actual logout is handled client-side by deleting the token.
+### `POST /api/auth/logout`
+Client-side logout (invalidates client token). No auth required.
 
 ---
 
 ## User Endpoints
 
-### Get Current User
+### `GET /api/users/me` 🔒
+Get current authenticated user profile.
 
-Get the authenticated user's profile.
-
-**Endpoint:** `GET /api/users/me`
-
-**Authentication:** Required
-
-**Response:** `200 OK`
+**Response `200`:**
 ```json
-{
-  "id": 1,
-  "name": "John Doe",
-  "username": "johndoe",
-  "email": "john@example.com",
-  "phone": "+1234567890",
-  "address": "123 Main St, City, Country",
-  "photo": null,
-  "image_path": "/static/profile_pics/default.jpg",
-  "points": 150
-}
+{ "id": 1, "name": "Ravi Kumar", "username": "ravikumar",
+  "email": "ravi@farm.com", "phone": "9876543210",
+  "address": "Pune", "points": 50, "image_path": "/media/profile_pics/ravi.jpg" }
 ```
-
-**Errors:**
-- `401 Unauthorized` - Invalid or missing token
 
 ---
 
-### Update Current User
+### `PATCH /api/users/me` 🔒
+Update current user profile.
 
-Update the authenticated user's profile.
-
-**Endpoint:** `PATCH /api/users/me`
-
-**Authentication:** Required
-
-**Request Body:** (all fields optional)
-```json
-{
-  "name": "Jane Doe",
-  "username": "janedoe",
-  "photo": "newphoto.jpg"
-}
+**Body** (`multipart/form-data`):
 ```
-
-**Response:** `200 OK`
-```json
-{
-  "id": 1,
-  "name": "Jane Doe",
-  "username": "janedoe",
-  "email": "john@example.com",
-  "phone": "+1234567890",
-  "address": "123 Main St, City, Country",
-  "photo": "newphoto.jpg",
-  "image_path": "/media/profile_pics/newphoto.jpg",
-  "points": 150
-}
+name=Ravi Kumar Updated
+phone=9999999999
+photo=<file upload>
 ```
-
-**Errors:**
-- `400 Bad Request` - Username already taken
-- `401 Unauthorized` - Invalid or missing token
-- `422 Unprocessable Entity` - Invalid input data
+**Response `200`:** Updated user object
 
 ---
 
-### Delete Current User
+### `DELETE /api/users/me` 🔒
+Delete current user account and all associated data.
 
-Permanently delete the authenticated user's account.
-
-**Endpoint:** `DELETE /api/users/me`
-
-**Authentication:** Required
-
-**Response:** `204 No Content`
-
-**Errors:**
-- `401 Unauthorized` - Invalid or missing token
-
-**Warning:** This action cannot be undone!
+**Response `204 No Content`**
 
 ---
 
-### Get User by ID
+### `GET /api/users/{user_id}`
+Get public profile by user ID.
 
-Get a user's public profile.
+**Response `200`:** Public user fields (no email/password)
 
-**Endpoint:** `GET /api/users/{user_id}`
+---
 
-**Authentication:** Not required
+## Farm Service Endpoints
 
-**Path Parameters:**
-- `user_id` (integer) - ID of the user to retrieve
+### `GET /api/farmservice/farms` 🔒
+List all farms for current user with summary statistics.
 
-**Response:** `200 OK`
+**Response `200`:**
 ```json
 {
-  "id": 1,
-  "name": "John Doe",
-  "username": "johndoe",
-  "photo": null,
-  "image_path": "/static/profile_pics/default.jpg",
-  "points": 150
-}
-```
-
-**Errors:**
-- `404 Not Found` - User does not exist
-
-**Note:** This endpoint returns only public information (no email, phone, or address).
-
----
-
-## Leaderboard Endpoints
-
-### Get Leaderboard
-
-Get users ranked by points.
-
-**Endpoint:** `GET /api/leaderboard`
-
-**Authentication:** Not required
-
-**Query Parameters:**
-- `limit` (integer, optional) - Maximum number of users to return (1-1000, default: 100)
-- `offset` (integer, optional) - Number of users to skip (default: 0)
-
-**Example:** `GET /api/leaderboard?limit=10&offset=0`
-
-**Response:** `200 OK`
-```json
-[
-  {
-    "id": 5,
-    "name": "Alice Smith",
-    "username": "alice",
-    "photo": "alice.jpg",
-    "image_path": "/media/profile_pics/alice.jpg",
-    "points": 500
-  },
-  {
-    "id": 2,
-    "name": "Bob Johnson",
-    "username": "bob",
-    "photo": null,
-    "image_path": "/static/profile_pics/default.jpg",
-    "points": 350
+  "farms": [
+    { "id": 1, "farm_name": "Green Valley", "area_hectares": 3.2,
+      "soil_type": "Loamy", "district": "Pune", "state": "Maharashtra",
+      "annual_credits": 48.0, "annual_value_inr": 24000.0,
+      "is_verified": false, "latitude": 18.52, "longitude": 73.85,
+      "polygon_coordinates": [[18.52,73.85],[18.53,73.85],[18.53,73.86]],
+      "created_at": "2026-02-12T10:00:00" }
+  ],
+  "summary": {
+    "total_farms": 1, "total_area_hectares": 3.2,
+    "total_credits": 48.0, "total_value_inr": 24000.0,
+    "verified_farms": 0
   }
-]
-```
-
-**Pagination Example:**
-- Page 1: `?limit=10&offset=0`
-- Page 2: `?limit=10&offset=10`
-- Page 3: `?limit=10&offset=20`
-
----
-
-## Data Models
-
-### UserCreate (Request)
-
-```json
-{
-  "name": "string (1-100 chars)",
-  "username": "string (1-50 chars)",
-  "email": "valid email address",
-  "phone": "string (1-15 chars)",
-  "address": "string (optional)",
-  "password": "string (min 8 chars)"
-}
-```
-
-### UserUpdate (Request)
-
-```json
-{
-  "name": "string (1-100 chars, optional)",
-  "username": "string (1-50 chars, optional)",
-  "photo": "string (optional)"
-}
-```
-
-### UserPrivate (Response)
-
-```json
-{
-  "id": "integer",
-  "name": "string",
-  "username": "string",
-  "email": "string",
-  "phone": "string",
-  "address": "string or null",
-  "photo": "string or null",
-  "image_path": "string",
-  "points": "integer"
-}
-```
-
-### UserPublic (Response)
-
-```json
-{
-  "id": "integer",
-  "name": "string",
-  "username": "string",
-  "photo": "string or null",
-  "image_path": "string",
-  "points": "integer"
-}
-```
-
-### Token (Response)
-
-```json
-{
-  "access_token": "string (JWT token)",
-  "token_type": "string (always 'bearer')"
 }
 ```
 
 ---
 
-## Error Responses
+### `POST /api/farmservice/farms` 🔒
+Create a new farm. Area and carbon credits are auto-calculated from polygon.
 
-All error responses follow this format:
-
+**Body:**
 ```json
 {
-  "detail": "Error message describing what went wrong"
+  "farm_name": "Green Valley",
+  "phone": "9876543210",
+  "district": "Pune",
+  "state": "Maharashtra",
+  "soil_type": "Loamy",
+  "polygon_coordinates": [[18.5204,73.8567],[18.5214,73.8567],[18.5214,73.8577]]
+}
+```
+`soil_type` must be one of: `Loamy` | `Clay` | `Sandy` | `Mixed`
+
+**Response `201`:** Full farm object with calculated `area_hectares`, `annual_credits`, `annual_value_inr`
+
+**Carbon Credit Formula:**
+```
+credits = area × soil_multiplier × 12.5
+soil: Loamy=1.2x  Clay=1.0x  Sandy=0.8x  Mixed=1.0x
+value_inr = credits × ₹500
+```
+
+---
+
+### `GET /api/farmservice/farms/{farm_id}` 🔒
+Get single farm details.
+
+---
+
+### `PUT /api/farmservice/farms/{farm_id}` 🔒
+Update farm data. Same body as create (all fields optional).
+
+---
+
+### `DELETE /api/farmservice/farms/{farm_id}` 🔒
+Delete a farm. **Response `204`**
+
+---
+
+### `GET /api/farmservice/statistics` 🔒
+Aggregated stats for current user's farms.
+
+---
+
+## Leaderboard
+
+### `GET /api/leaderboard`
+Public ranking of all users by points.
+
+**Response `200`:**
+```json
+[{ "rank": 1, "username": "ravikumar", "name": "Ravi Kumar", "points": 150 }]
+```
+
+---
+
+## AI Assistant Endpoints (`/aihelp`)
+
+The assistant only answers **agriculture-related** questions (crops, soil, carbon credits, government schemes, pest control, livestock). Off-topic questions receive a polite redirect.
+
+---
+
+### `GET /aihelp`
+Serves the AI chat UI page (HTML). Auth enforced client-side.
+
+---
+
+### `POST /aihelp/chat` 🔒
+Send a text message to the AI assistant.
+
+**Body:**
+```json
+{ "message": "What crops grow well in black cotton soil?", "conversation_id": null }
+```
+Pass `conversation_id` to continue an existing conversation, or `null` to start new.
+
+**Response `200`:**
+```json
+{
+  "response": "Black cotton soil (Vertisol) retains moisture well and is excellent for cotton, sorghum, wheat, and chickpeas...",
+  "conversation_id": 5,
+  "sources": []
 }
 ```
 
-### Common Status Codes
+---
 
-- `200 OK` - Request successful
-- `201 Created` - Resource created successfully
-- `204 No Content` - Request successful, no content to return
-- `400 Bad Request` - Invalid request data
-- `401 Unauthorized` - Authentication required or failed
-- `403 Forbidden` - Authenticated but not authorized
-- `404 Not Found` - Resource not found
-- `422 Unprocessable Entity` - Validation error
-- `500 Internal Server Error` - Server error
+### `POST /aihelp/voice/chat` 🔒
+Full voice pipeline: audio → STT → LLM → TTS → WAV audio.
+
+**Body** (`multipart/form-data`):
+```
+audio=<WAV/WEBM file>
+conversation_id=5         (optional)
+language=hi-IN            (BCP-47 code, default: hi-IN)
+```
+
+**Response `200 audio/wav`** — Raw WAV bytes playable by browser.
+
+Response headers contain:
+```
+X-Transcript: <transcribed user speech>
+X-Response: <assistant text response>
+X-Conversation-Id: <conversation id>
+```
+If TTS fails, falls back to JSON with `{"transcript": ..., "response": ..., "tts_error": ...}`.
+
+**Supported languages:** `hi-IN` | `en-IN` | `kn-IN` | `ta-IN` | `te-IN` | `mr-IN` | `bn-IN` | `pa-IN`
 
 ---
 
-## Example Usage
+### `POST /aihelp/voice/speak` 🔒
+TTS only — convert text to WAV audio.
 
-### Complete Registration and Login Flow
+**Body** (`multipart/form-data`):
+```
+text=Your text to convert (max 500 chars)
+language=en-IN
+```
+**Response `200 audio/wav`**
 
-```bash
-# 1. Register a new user
-curl -X POST "http://localhost:8000/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "username": "johndoe",
-    "email": "john@example.com",
-    "phone": "+1234567890",
-    "password": "SecurePass123"
-  }'
+---
 
-# 2. Login to get token
-curl -X POST "http://localhost:8000/api/auth/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=john@example.com&password=SecurePass123"
+### `GET /aihelp/conversations` 🔒
+List all conversations for current user (newest first).
 
-# Response: {"access_token": "eyJ...", "token_type": "bearer"}
-
-# 3. Get current user profile
-curl -X GET "http://localhost:8000/api/users/me" \
-  -H "Authorization: Bearer eyJ..."
-
-# 4. Update profile
-curl -X PATCH "http://localhost:8000/api/users/me" \
-  -H "Authorization: Bearer eyJ..." \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Jane Doe"}'
-
-# 5. View leaderboard
-curl -X GET "http://localhost:8000/api/leaderboard?limit=10"
-
-# 6. Delete account
-curl -X DELETE "http://localhost:8000/api/users/me" \
-  -H "Authorization: Bearer eyJ..."
+**Response `200`:**
+```json
+[{ "id": 5, "title": "What crops grow in...", "created_at": "...",
+   "messages": [{ "id": 10, "role": "user", "content": "...", "timestamp": "..." }] }]
 ```
 
 ---
 
-## Interactive Documentation
-
-For interactive API testing, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-These interfaces allow you to:
-- View all endpoints
-- See request/response schemas
-- Test endpoints directly in the browser
-- Authenticate and make requests
+### `GET /aihelp/conversations/{id}` 🔒
+Get single conversation with all messages.
 
 ---
 
-## Rate Limiting
-
-Currently, there is no rate limiting implemented. For production use, consider adding:
-- Rate limiting middleware
-- Request throttling
-- IP-based restrictions
+### `DELETE /aihelp/conversations/{id}` 🔒
+Delete a conversation and all its messages. **Response `204`**
 
 ---
 
-## Versioning
+## Plant Discovery Endpoints (`/challenge`)
 
-This API is currently version 1.0. Future versions may include:
-- API versioning in URL (`/api/v2/...`)
-- Deprecation notices
-- Migration guides
+### `GET /challenge`
+Serves the plant discovery page (HTML). Auth enforced client-side.
 
 ---
 
-## Support
+### `POST /challenge/identify` 🔒
+Upload a plant photo → identify with PlantNet → save badge.
 
-For questions or issues:
-1. Check the inline code comments
-2. Review the LEARNING.md guide
-3. Consult the FastAPI documentation
-4. Test endpoints using /docs interface
+**Body** (`multipart/form-data`):
+```
+image=<image file (JPG/PNG/WEBM, max 10MB)>
+```
+
+**Pipeline:**
+1. PlantNet API identification (rejects < 30% confidence)
+2. Sarvam AI fun fact generation
+3. First-global-discovery check (40 pts bonus)
+4. Save `PlantDiscovery` record (TEXT ONLY — image never stored)
+5. Update `DailyStreak` + `UserTree`
+
+**Response `200`:**
+```json
+{
+  "common_name": "German Chamomile",
+  "scientific_name": "Matricaria chamomilla",
+  "family": "Asteraceae",
+  "confidence": 0.94,
+  "fun_fact": "Chamomile was used in ancient Egypt as a remedy for fevers...",
+  "is_first_global": false,
+  "points_earned": 10,
+  "discovery_id": 3,
+  "emoji": "🌻"
+}
+```
+
+**Errors:**
+- `422` — confidence < 30% ("Try a clearer photo!")
+- `413` — image > 10MB
+
+**Points:**
+- First global discovery: **40 pts**
+- New species for user: **10 pts**
+- Re-discover same species: **5 pts**
+
+---
+
+### `POST /challenge/chat` 🔒
+Chat about an identified plant using Sarvam AI.
+
+**Body:**
+```json
+{ "message": "Is chamomile good for digestion?", "plant_name": "German Chamomile", "discovery_id": 3 }
+```
+**Response `200`:**
+```json
+{ "response": "Yes! Chamomile is well known for its gentle digestive support..." }
+```
+
+---
+
+### `GET /challenge/streak` 🔒
+Get 7-day streak data (today + 6 prior days).
+
+**Response `200`:**
+```json
+{
+  "days": [
+    { "date": "2026-02-20", "verified": true, "plant_count": 2 },
+    { "date": "2026-02-21", "verified": false, "plant_count": 0 }
+  ],
+  "current_streak": 3,
+  "total_days": 12
+}
+```
+
+---
+
+### `GET /challenge/streak/mini` 🔒
+Same as `/challenge/streak` — lightweight endpoint used by the dashboard widget.
+
+---
+
+### `GET /challenge/tree` 🔒
+Get user's virtual growing tree state.
+
+**Response `200`:**
+```json
+{ "total_leaves": 14, "total_points": 130, "tree_level": 3 }
+```
+
+Tree levels: every 5 plants = +1 level (max Level 10).
+
+---
+
+### `GET /challenge/badges` 🔒
+Get all plant badges for current user (newest first).
+
+**Response `200`:**
+```json
+[{
+  "id": 3,
+  "common_name": "German Chamomile",
+  "scientific_name": "Matricaria chamomilla",
+  "emoji": "🌻",
+  "badge_color": "#40916C",
+  "confidence": 0.94,
+  "is_first_global": false,
+  "points_earned": 10,
+  "discovered_at": "2026-02-26T10:00:00",
+  "fun_fact": "Chamomile was used in ancient Egypt..."
+}]
+```
+
+---
+
+## HTML Pages
+
+| URL | Description |
+|---|---|
+| `GET /` | Landing page |
+| `GET /login` | Login form |
+| `GET /register` | Registration form |
+| `GET /dashboard` | User dashboard with streak widget |
+| `GET /profile/{id}` | Public profile |
+| `GET /profile/edit` | Edit own profile |
+| `GET /leaderboard` | Rankings |
+| `GET /farmservice` | Farm management dashboard |
+| `GET /aihelp` | AI chat + voice orb |
+| `GET /challenge` | Plant discovery + growing tree |
+
+---
+
+## Error Reference
+
+| Code | Meaning |
+|---|---|
+| `400` | Bad request (duplicate username/email, custom validation) |
+| `401` | Missing or invalid JWT token |
+| `403` | Valid token but resource belongs to another user |
+| `404` | Resource not found |
+| `413` | Uploaded file too large |
+| `422` | Pydantic validation failure or low-confidence plant ID |
+| `502` | External API failure (Sarvam STT/TTS, PlantNet) |
+| `500` | Unexpected server error |
