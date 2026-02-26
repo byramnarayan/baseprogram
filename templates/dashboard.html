@@ -72,6 +72,18 @@
             </div>
         </div>
     </div>
+
+    <!-- ── 7-DAY STREAK WIDGET ── -->
+    <div class="streak-widget" onclick="window.location.href='/challenge'" style="background:linear-gradient(135deg,#1B4332 0%,#31694E 100%);border-radius:16px;padding:1.25rem 1.5rem;margin:1.25rem 0;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 15px rgba(49,105,78,.3);">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
+        <span style="font-size:1.4rem;">🔥</span>
+        <span style="font-weight:700;color:white;font-size:1rem;flex:1;">Daily Plant Streak</span>
+        <span id="streak-count" style="font-size:.8rem;background:rgba(187,200,99,.2);color:#BBC863;border:1px solid #BBC863;padding:.2rem .6rem;border-radius:20px;font-weight:600;">— day streak</span>
+      </div>
+      <div id="streak-days" style="display:flex;justify-content:space-between;gap:.4rem;margin-bottom:.75rem;"></div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.5);text-align:right;">Tap to explore today's challenge →</div>
+    </div>
+
 </div>
 {% endblock %}
 
@@ -101,5 +113,36 @@
 
     // Load data on page load
     loadUserData();
+
+    // Streak widget
+    (async function loadStreakWidget() {
+      try {
+        const res = await fetch("/challenge/streak/mini", {
+          headers: { "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById("streak-count").textContent = `${data.current_streak} day streak`;
+        const today = new Date().toISOString().split("T")[0];
+        const names = ["S","M","T","W","T","F","S"];
+        const container = document.getElementById("streak-days");
+        data.days.forEach(day => {
+          const d = new Date(day.date + "T00:00:00");
+          const isToday = day.date === today;
+          const label = isToday ? "Today" : names[d.getDay()];
+          let dotBg, dotColor, dotContent;
+          if (day.verified) { dotBg="#BBC863"; dotColor="#1B4332"; dotContent="✓"; }
+          else if (isToday) { dotBg="rgba(255,255,255,0.1)"; dotColor="rgba(255,255,255,0.5)"; dotContent="🌿"; }
+          else { dotBg="rgba(239,68,68,0.25)"; dotColor="rgba(239,68,68,0.7)"; dotContent="✕"; }
+          container.innerHTML += `
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;">
+              <span style="font-size:.65rem;color:rgba(255,255,255,.6);text-transform:uppercase;font-weight:600;">${label}</span>
+              <span style="width:32px;height:32px;border-radius:50%;background:${dotBg};color:${dotColor};display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;">${dotContent}</span>
+            </div>`;
+        });
+      } catch(e) {
+        document.getElementById("streak-days").innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:.8rem;">Start your streak today!</p>';
+      }
+    })();
 </script>
 {% endblock %}

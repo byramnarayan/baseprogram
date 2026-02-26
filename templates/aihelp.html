@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/aihelp.css">
+
+<div class="aihelp-wrapper">
+
+  <!-- LEFT: Sidebar -->
+  <aside class="aihelp-sidebar">
+    <button class="btn-new-chat" onclick="startNewConversation()">+ New Chat</button>
+    <div id="conversation-list" class="conversation-list"></div>
+  </aside>
+
+  <!-- CENTRE: Chat Area -->
+  <main class="aihelp-main">
+    <div class="chat-header">
+      <div class="assistant-avatar">🌿</div>
+      <div>
+        <h2>Krushi AI Assistant</h2>
+        <span class="status-dot"></span><span class="status-text">Online</span>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="message assistant">
+        <div class="bubble">Hey there! I'm your Krushi Yantra AI assistant. Ask me anything about your farms, carbon credits, soil, or crops!</div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <textarea
+        id="chat-input"
+        placeholder="Type your message… (Enter to send)"
+        rows="1"
+        onkeydown="handleKeyDown(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="btn-send" id="btn-send" onclick="sendMessage()" title="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <!-- RIGHT: Voice Orb Panel -->
+  <aside class="voice-panel">
+    <div class="voice-panel-inner">
+
+      <div class="orb-container" id="orb-container">
+        <!-- Animated metallic orb -->
+        <div class="orb" id="voice-orb">
+          <div class="orb-ring orb-ring-1"></div>
+          <div class="orb-ring orb-ring-2"></div>
+          <div class="orb-shine"></div>
+        </div>
+        <div class="orb-status" id="orb-status">Tap mic to speak</div>
+      </div>
+
+      <!-- Language selector -->
+      <div class="voice-lang">
+        <select id="voice-lang" title="Conversation language">
+          <option value="en-IN">English (India)</option>
+          <option value="hi-IN" selected>Hindi</option>
+          <option value="kn-IN">Kannada</option>
+          <option value="ta-IN">Tamil</option>
+          <option value="te-IN">Telugu</option>
+          <option value="mr-IN">Marathi</option>
+          <option value="pa-IN">Punjabi</option>
+          <option value="bn-IN">Bengali</option>
+        </select>
+      </div>
+
+      <!-- Last spoken text (transcript) -->
+      <div class="voice-transcript" id="voice-transcript"></div>
+
+      <!-- Mic button -->
+      <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Hold to speak">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+
+      <!-- Text input for send-a-message -->
+      <div class="voice-text-input">
+        <input type="text" id="voice-text" placeholder="Send a message" onkeydown="voiceTextKeyDown(event)">
+        <button onclick="voiceTextSend()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/aihelp.js"></script>
+{% endblock %}

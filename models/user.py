@@ -85,6 +85,31 @@ class User(Base):
         back_populates="owner",
         cascade="all, delete-orphan",  # Delete farms when user is deleted
     )
+
+    # Relationship with Conversation model (AI Help)
+    conversations: Mapped[list["Conversation"]] = relationship(  # type: ignore
+        "Conversation",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Plant Discovery relationships
+    plant_discoveries: Mapped[list["PlantDiscovery"]] = relationship(  # type: ignore
+        "PlantDiscovery",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    daily_streaks: Mapped[list["DailyStreak"]] = relationship(  # type: ignore
+        "DailyStreak",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    user_tree: Mapped["UserTree | None"] = relationship(  # type: ignore
+        "UserTree",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
     
     @property
     def image_path(self) -> str:

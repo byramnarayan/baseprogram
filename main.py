@@ -26,6 +26,11 @@ from fastapi.responses import RedirectResponse
 
 from database import engine, Base
 from routers import auth, users, leaderboard, farmservice
+from routers.aihelp import router as aihelp_router
+from routers.challenge import router as challenge_router
+# Import models so they register with Base.metadata before create_all
+import models.conversation  # noqa: F401
+import models.plant_discovery  # noqa: F401
 
 
 @asynccontextmanager
@@ -52,18 +57,18 @@ async def lifespan(app: FastAPI):
         None: Control to the application
     """
     # Startup: Create database tables
-    print("🚀 Starting up application...")
+    print("[STARTUP] Starting up application...")
     async with engine.begin() as conn:
         # Create all tables defined in models
         await conn.run_sync(Base.metadata.create_all)
-    print("✅ Database tables created")
+    print("[STARTUP] Database tables created")
     
     yield  # Application runs here
     
     # Shutdown: Clean up resources
-    print("🛑 Shutting down application...")
+    print("[SHUTDOWN] Shutting down application...")
     await engine.dispose()
-    print("✅ Database connections closed")
+    print("[SHUTDOWN] Database connections closed")
 
 
 # Create FastAPI application instance
@@ -96,6 +101,8 @@ app.include_router(auth.router)  # /api/auth/*
 app.include_router(users.router)  # /api/users/*
 app.include_router(leaderboard.router)  # /api/leaderboard/*
 app.include_router(farmservice.router)  # /farmservice and /api/farmservice/*
+app.include_router(aihelp_router)  # /aihelp/*
+app.include_router(challenge_router)  # /challenge/*
 
 
 # ============================================================================

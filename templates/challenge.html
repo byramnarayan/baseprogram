@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Plant Challenge{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/challenge.css">
+
+<div class="challenge-wrapper">
+
+  <!-- TOP: GROWING TREE -->
+  <section class="tree-section">
+    <div class="tree-stats">
+      <div class="stat-pill"><span id="total-leaves">0</span> 🍃 Leaves</div>
+      <div class="stat-pill level">Level <span id="tree-level">1</span></div>
+      <div class="stat-pill"><span id="total-points">0</span> ⭐ Points</div>
+    </div>
+
+    <div class="tree-container">
+      <svg id="plant-tree" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Pot -->
+        <rect x="115" y="270" width="70" height="50" rx="8" fill="#8B6914"/>
+        <rect x="108" y="262" width="84" height="14" rx="4" fill="#A0791C"/>
+        <!-- Trunk -->
+        <rect x="143" y="160" width="14" height="110" rx="7" fill="#6B4C11"/>
+        <!-- Branches -->
+        <line x1="150" y1="200" x2="90" y2="155" stroke="#6B4C11" stroke-width="8" stroke-linecap="round"/>
+        <line x1="150" y1="190" x2="210" y2="145" stroke="#6B4C11" stroke-width="8" stroke-linecap="round"/>
+        <line x1="90" y1="155" x2="65" y2="125" stroke="#6B4C11" stroke-width="5" stroke-linecap="round"/>
+        <line x1="90" y1="155" x2="110" y2="120" stroke="#6B4C11" stroke-width="5" stroke-linecap="round"/>
+        <line x1="210" y1="145" x2="230" y2="115" stroke="#6B4C11" stroke-width="5" stroke-linecap="round"/>
+        <line x1="210" y1="145" x2="195" y2="115" stroke="#6B4C11" stroke-width="5" stroke-linecap="round"/>
+        <!-- Leaves added by JS -->
+        <g id="tree-leaves"></g>
+        <!-- Top bud -->
+        <circle cx="150" cy="150" r="22" fill="#2D6A4F" opacity="0.9"/>
+        <circle cx="150" cy="150" r="14" fill="#40916C"/>
+      </svg>
+    </div>
+
+    <!-- 7-day streak strip -->
+    <div class="streak-strip" id="challenge-streak-strip"></div>
+  </section>
+
+  <!-- MIDDLE: IDENTIFY BUTTON -->
+  <section class="add-plant-section">
+    <button class="btn-add-plant" onclick="openUploadModal()">
+      <span class="btn-icon">📷</span> Identify a Plant
+    </button>
+    <p class="add-plant-hint">Photograph any plant to add it to your collection</p>
+  </section>
+
+  <!-- BOTTOM: BADGE COLLECTION -->
+  <section class="badge-section">
+    <h3 class="badge-section-title">🏆 Your Discoveries</h3>
+    <div class="badge-grid" id="badge-grid"></div>
+    <div class="badge-empty" id="badge-empty" style="display:none">
+      <p>🌱 No plants discovered yet.<br>Start by identifying your first plant!</p>
+    </div>
+  </section>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="upload-modal" style="display:none">
+  <div class="modal-card">
+
+    <!-- Step: Upload -->
+    <div id="step-upload" class="modal-step">
+      <div class="modal-header">
+        <h2>Identify a Plant</h2>
+        <button class="btn-close" onclick="closeUploadModal()">✕</button>
+      </div>
+      <div class="upload-area" id="upload-area" onclick="triggerFileInput()">
+        <div class="upload-placeholder">
+          <span class="upload-icon">🌿</span>
+          <p>Tap to take a photo or upload</p>
+          <p class="upload-hint">Centre your plant for best results</p>
+        </div>
+        <img id="preview-img" class="preview-img" style="display:none" alt="Preview"/>
+      </div>
+      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" onchange="handleFileSelect(event)"/>
+      <button class="btn-identify" id="btn-identify" onclick="submitIdentify()" disabled>🔍 Identify Plant</button>
+    </div>
+
+    <!-- Step: Loading -->
+    <div id="step-loading" class="modal-step" style="display:none">
+      <div class="loading-container">
+        <div class="plant-loader">🌿</div>
+        <p class="loading-text">Analyzing your plant...</p>
+        <p class="loading-subtext">Consulting PlantNet database</p>
+      </div>
+    </div>
+
+    <!-- Step: First Global Discovery -->
+    <div id="step-first-discovery" class="modal-step" style="display:none">
+      <div class="first-discovery-banner">
+        <div class="pioneer-badge">🏅 PIONEER</div>
+        <h1 class="fd-title">🎊 FIRST DISCOVERY!</h1>
+        <p class="fd-subtitle">You're the first to find</p>
+        <h2 class="fd-plant-name" id="fd-plant-name">—</h2>
+        <div class="fd-points">
+          <span class="points-label">Bonus Points Earned</span>
+          <span class="points-value" id="fd-points">+40</span>
+        </div>
+        <button class="btn-share" onclick="shareDiscovery()">Share Discovery 🌐</button>
+        <button class="btn-continue" onclick="showResultStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step: Result + Chat -->
+    <div id="step-result" class="modal-step" style="display:none">
+      <div class="result-card">
+        <div class="result-header">
+          <span class="result-badge-mini" id="first-badge" style="display:none">🏅 FIRST DISCOVERY</span>
+          <div class="result-points-pill">🌿 <span id="result-points">10</span> POINTS!</div>
+        </div>
+        <h2 class="result-plant-name" id="result-plant-name">—</h2>
+        <p class="result-sci-name" id="result-sci-name">—</p>
+        <div class="result-confidence">
+          <div class="confidence-bar"><div class="confidence-fill" id="confidence-fill"></div></div>
+          <span id="confidence-label">—</span>
+        </div>
+        <div class="result-section">
+          <h4>🌱 About This Plant</h4>
+          <p id="result-funfact">—</p>
+        </div>
+        <div class="result-section">
+          <h4>💬 Ask about this plant</h4>
+          <div class="plant-chat-messages" id="plant-chat-messages"></div>
+          <div class="plant-chat-input">
+            <input type="text" id="plant-chat-input" placeholder="Ask anything about this plant..."
+                   onkeydown="if(event.key==='Enter') sendPlantChat()"/>
+            <button onclick="sendPlantChat()">→</button>
+          </div>
+        </div>
+        <button class="btn-explore" onclick="closeAndRefresh()">Continue Exploring 🌿</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/challenge.js"></script>
+{% endblock %}

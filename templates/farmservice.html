@@ -444,11 +444,20 @@
         <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-retro-yellow"></div>
         <p class="text-retro-yellow font-heading text-2xl mt-4">Loading...</p>
     </div>
+
+
 </div>
+<!-- ElevenLabs Voice Agent (Centered) -->
+<div class="w-full flex justify-center items-center mt-10 mb-10">
+    <elevenlabs-convai agent-id="agent_1401kh9p0zgsfrz9qf773xbsfhpn"></elevenlabs-convai>
+</div>
+
+
 
 {% endblock %}
 
 {% block scripts %}
 <script type="module" src="/static/js/mapHandler.js"></script>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 <script type="module" src="/static/js/farmservice.js"></script>
 {% endblock %}

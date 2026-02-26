@@ -1,0 +1,123 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.challenge-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+  background: #f0f7f2;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Tree Section ─────────────────────────────────────────────────────────── */
+.tree-section {
+  background: linear-gradient(180deg, #1B4332 0%, #2D6A4F 60%, #40916C 100%);
+  border-radius: 24px;
+  padding: 1.5rem 1rem 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 8px 30px rgba(27,67,50,0.4);
+}
+.tree-stats { display:flex; justify-content:center; gap:.6rem; margin-bottom:1rem; }
+.stat-pill {
+  background: rgba(255,255,255,0.15);
+  color: white; padding: .3rem .8rem; border-radius: 20px;
+  font-size: .8rem; font-weight: 700; backdrop-filter: blur(4px);
+}
+.stat-pill.level { background: rgba(187,200,99,.25); color: #BBC863; }
+.tree-container { display:flex; justify-content:center; padding:0 1rem; }
+#plant-tree { width:100%; max-width:280px; filter: drop-shadow(0 10px 20px rgba(0,0,0,.3)); }
+
+/* ── Streak Strip in Challenge Page ─────────────────────────────────────── */
+.streak-strip { display:flex; justify-content:center; gap:.5rem; padding:.75rem 0 .25rem; }
+.s-day { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.s-label { font-size:.6rem; color:rgba(255,255,255,.5); font-weight:700; text-transform:uppercase; }
+.s-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; }
+.s-dot.ok  { background:#BBC863; color:#1B4332; }
+.s-dot.no  { background:rgba(239,68,68,.3); color:rgba(239,68,68,.8); border:1.5px solid rgba(239,68,68,.4); }
+.s-dot.now { background:rgba(255,255,255,.15); border:2px dashed rgba(255,255,255,.5); color:rgba(255,255,255,.6); }
+
+/* ── Add Plant Button ────────────────────────────────────────────────────── */
+.add-plant-section { text-align:center; margin-bottom:1.5rem; }
+.btn-add-plant {
+  display:inline-flex; align-items:center; gap:.6rem;
+  background:#31694E; color:white; border:none; padding:1rem 2rem;
+  border-radius:50px; font-size:1.05rem; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 20px rgba(49,105,78,.4); transition:all .2s;
+  font-family:'Fredoka One',cursive;
+}
+.btn-add-plant:hover { background:#3d8463; transform:translateY(-2px); box-shadow:0 8px 25px rgba(49,105,78,.5); }
+.btn-icon { font-size:1.3rem; }
+.add-plant-hint { margin-top:.5rem; font-size:.8rem; color:#6b7280; }
+
+/* ── Badge Grid ───────────────────────────────────────────────────────────── */
+.badge-section { padding-bottom:2rem; }
+.badge-section-title { font-size:1.1rem; font-weight:700; color:#1B4332; margin-bottom:1rem; text-align:center; font-family:'Fredoka One',cursive; }
+.badge-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; }
+.badge-empty { text-align:center; color:#9ca3af; padding:2rem; font-size:.9rem; line-height:1.6; }
+.hex-badge { display:flex; flex-direction:column; align-items:center; cursor:pointer; transition:transform .2s; }
+.hex-badge:hover { transform:scale(1.08); }
+.hex-svg { width:88px; height:100px; }
+.hex-label { font-size:.65rem; font-weight:700; color:#374151; text-align:center; margin-top:.25rem; max-width:88px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000; display:flex; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
+.modal-card { background:white; border-radius:24px 24px 0 0; width:100%; max-width:480px; max-height:92vh; overflow-y:auto; padding:1.5rem; }
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; }
+.modal-header h2 { font-size:1.2rem; font-weight:700; color:#1B4332; margin:0; }
+.btn-close { background:#f3f4f6; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; }
+
+/* Upload */
+.upload-area { border:3px dashed #BBC863; border-radius:20px; min-height:200px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#f0f7f2; margin-bottom:1rem; overflow:hidden; transition:all .2s; }
+.upload-area:hover { background:#e6f2eb; border-color:#31694E; }
+.upload-placeholder { text-align:center; padding:2rem; }
+.upload-icon { font-size:3rem; display:block; margin-bottom:.5rem; }
+.upload-hint { font-size:.75rem; color:#9ca3af; margin-top:.25rem; }
+.preview-img { width:100%; height:200px; object-fit:cover; border-radius:17px; }
+.btn-identify { width:100%; background:#31694E; color:white; border:none; padding:.9rem; border-radius:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn-identify:hover:not(:disabled) { background:#3d8463; }
+.btn-identify:disabled { background:#9ca3af; cursor:not-allowed; }
+
+/* Loading */
+.loading-container { text-align:center; padding:3rem 1rem; }
+.plant-loader { font-size:3rem; animation:sway 1.5s ease-in-out infinite; display:inline-block; }
+@keyframes sway { 0%{transform:rotate(-15deg)scale(1)}50%{transform:rotate(15deg)scale(1.1)}100%{transform:rotate(-15deg)scale(1)} }
+.loading-text { font-size:1.1rem; font-weight:700; color:#1B4332; margin-top:1rem; }
+.loading-subtext { font-size:.8rem; color:#9ca3af; }
+
+/* First Discovery */
+.first-discovery-banner { background:linear-gradient(135deg,#f59e0b,#ef4444); border-radius:20px; padding:2rem 1.5rem; text-align:center; color:white; }
+.pioneer-badge { background:rgba(255,255,255,.2); display:inline-block; padding:.25rem .75rem; border-radius:20px; font-size:.75rem; font-weight:700; margin-bottom:.75rem; }
+.fd-title { font-size:1.8rem; font-weight:900; margin:0 0 .25rem; }
+.fd-subtitle { font-size:.9rem; opacity:.85; margin-bottom:.25rem; }
+.fd-plant-name { font-size:1.4rem; font-weight:800; margin:0 0 1.5rem; }
+.fd-points { background:rgba(255,255,255,.9); border-radius:14px; padding:.75rem 1.5rem; margin-bottom:1.25rem; display:inline-block; }
+.points-label { display:block; font-size:.75rem; color:#6b7280; }
+.points-value { font-size:1.6rem; font-weight:900; color:#31694E; }
+.btn-share { width:100%; background:rgba(255,255,255,.95); color:#1B4332; border:none; padding:.8rem; border-radius:12px; font-weight:700; cursor:pointer; margin-bottom:.5rem; font-size:.95rem; }
+.btn-continue { width:100%; background:transparent; color:rgba(255,255,255,.85); border:2px solid rgba(255,255,255,.4); padding:.7rem; border-radius:12px; font-weight:600; cursor:pointer; font-size:.9rem; }
+
+/* Result */
+.result-card { padding:.5rem 0; }
+.result-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem; }
+.result-badge-mini { font-size:.7rem; background:#f59e0b; color:white; padding:.2rem .6rem; border-radius:10px; font-weight:700; }
+.result-points-pill { background:#f0f7f2; color:#31694E; padding:.3rem .7rem; border-radius:20px; font-weight:700; font-size:.85rem; }
+.result-plant-name { font-size:1.5rem; font-weight:800; color:#1B4332; margin:0 0 .15rem; }
+.result-sci-name { font-size:.85rem; color:#6b7280; font-style:italic; margin-bottom:.75rem; }
+.result-confidence { margin-bottom:.25rem; }
+.confidence-bar { background:#e5e7eb; border-radius:4px; height:6px; margin-bottom:.3rem; }
+.confidence-fill { background:linear-gradient(90deg,#BBC863,#31694E); height:100%; border-radius:4px; transition:width .8s ease; }
+.result-section { margin-top:1.25rem; border-top:1px solid #f3f4f6; padding-top:1rem; }
+.result-section h4 { font-size:.9rem; font-weight:700; color:#1B4332; margin-bottom:.5rem; }
+.result-section p { font-size:.85rem; color:#374151; line-height:1.5; }
+
+/* Plant Chat */
+.plant-chat-messages { background:#f8faf9; border-radius:12px; padding:.75rem; min-height:60px; max-height:160px; overflow-y:auto; margin-bottom:.5rem; }
+.plant-chat-input { display:flex; gap:.5rem; }
+.plant-chat-input input { flex:1; border:1.5px solid #e5ece8; border-radius:10px; padding:.55rem .75rem; font-size:.85rem; outline:none; font-family:'Nunito',sans-serif; }
+.plant-chat-input input:focus { border-color:#31694E; }
+.plant-chat-input button { background:#31694E; color:white; border:none; border-radius:10px; padding:.55rem 1rem; cursor:pointer; font-size:1.1rem; font-weight:700; }
+.chat-msg-user { text-align:right; margin-bottom:.4rem; }
+.chat-msg-user span { background:#31694E; color:white; padding:.35rem .65rem; border-radius:14px 14px 2px 14px; display:inline-block; font-size:.8rem; }
+.chat-msg-bot { text-align:left; margin-bottom:.4rem; }
+.chat-msg-bot span { background:white; color:#1B4332; border:1px solid #e5ece8; padding:.35rem .65rem; border-radius:14px 14px 14px 2px; display:inline-block; font-size:.8rem; }
+.btn-explore { width:100%; background:#31694E; color:white; border:none; padding:.9rem; border-radius:14px; font-size:.95rem; font-weight:700; cursor:pointer; margin-top:1.25rem; transition:background .2s; }
+.btn-explore:hover { background:#3d8463; }
